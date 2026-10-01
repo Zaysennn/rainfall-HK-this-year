@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+.uv-cache/
+.uv-python/
+.mpl-cache/
+.backups/
+.vscode/
+.idea/
+site/
+.DS_Store
+Thumbs.db
+desktop.ini

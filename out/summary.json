@@ -1,0 +1,67 @@
+{
+  "station": "Hong Kong Observatory",
+  "units": "mm",
+  "raw_rows": 49492,
+  "valid_daily_rows": 49491,
+  "excluded_missing_date_placeholders": [
+    {
+      "line": 5847,
+      "date_fields": [
+        "1900",
+        "2",
+        "29"
+      ],
+      "reason": "Invalid calendar date with an unavailable value."
+    }
+  ],
+  "raw_first_date": "1884-03-01",
+  "raw_last_date": "2026-08-31",
+  "year": 2026,
+  "coverage_end": "2026-08-31",
+  "rainy_day_threshold_mm": 1.0,
+  "trace_upper_limit_mm": 0.05,
+  "trace_total_convention": "zero, a lower bound",
+  "shown_year": {
+    "total": 2357.6000000000004,
+    "rainy": 85,
+    "complete": 243,
+    "missing": 0,
+    "traces": 30,
+    "peak_day": "2026-06-15",
+    "peak_mm": 122.6
+  },
+  "comparison": {
+    "2026": {
+      "end": "2026-08-31",
+      "total": 2357.6000000000004,
+      "rainy": 85,
+      "complete": 243,
+      "missing": 0,
+      "traces": 30,
+      "peak_day": "2026-06-15",
+      "peak_mm": 122.6
+    },
+    "2025": {
+      "end": "2025-08-31",
+      "total": 1985.3000000000002,
+      "rainy": 73,
+      "complete": 243,
+      "missing": 0,
+      "traces": 36,
+      "peak_day": "2025-08-05",
+      "peak_mm": 368.9
+    }
+  },
+  "cumulative_series": [
+    {
+      "year": 2025,
+      "points": 243,
+      "last_day": "2025-08-31"
+    },
+    {
+      "year": 2026,
+      "points": 243,
+      "last_day": "2026-08-31"
+    }
+  ]
+}

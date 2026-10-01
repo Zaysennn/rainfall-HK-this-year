@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f5ef">
+  <title>A year, in rain — Hong Kong Observatory</title>
+  <!-- INLINE_STYLE -->
+</head>
+<body>
+  <main class="page">
+    <header class="masthead">
+      <a class="wordmark" href="#main-chart" aria-label="Go to the rainfall explorer"><span class="rain-symbol" aria-hidden="true">◒</span> FIELD NOTES <span class="masthead-divider">/</span> HONG KONG</a>
+      <span class="issue">OBSERVATORY RECORDS · 01</span>
+    </header>
+
+    <section class="hero" aria-labelledby="title">
+      <div><p class="eyebrow">AN INSTRUMENT FOR READING THE WEATHER</p><h1 id="title">A year,<br><em>in rain.</em></h1></div>
+      <div class="hero-note"><span class="live-dot" aria-hidden="true"></span><p>One station. Every day.<br>A city’s wet and dry rhythms,<br>drawn from observed rainfall.</p><span class="snapshot" id="coverage-note"></span></div>
+    </section>
+
+    <section class="instrument" aria-label="Rainfall controls">
+      <div class="top-controls">
+        <div class="year-group"><label for="year">OBSERVATION YEAR</label><select id="year"><option value="2026">2026</option><option value="2025">2025</option></select></div>
+        <label class="comparison-control"><input id="compare" type="checkbox" checked><span class="switch" aria-hidden="true"></span><span>Compare the same period<br><small id="compare-label">2025 vs 2026</small></span></label>
+        <div class="playback-settings"><label for="speed">PLAYBACK</label><select id="speed"><option value="1">1× · 12 days / sec</option><option value="0.5">½× · 6 days / sec</option><option value="2">2× · 24 days / sec</option></select></div>
+      </div>
+      <div class="timeline"><button id="play" class="play-button" type="button" aria-label="Play rainfall timeline"><span aria-hidden="true">▶</span><span id="play-label">Play</span></button><div class="range-wrap"><label for="seek" class="sr-only">Reveal rainfall through this day</label><input id="seek" type="range" min="1" max="243" value="243"><div class="range-labels"><span>01 JAN</span><span id="range-end"></span></div></div><div class="time-readout"><span id="cursor-date"></span><small id="cursor-count"></small></div></div>
+    </section>
+
+    <section class="stats" aria-label="Rainfall through the playback date">
+      <article><p id="total-label">2026 · RECORDED TOTAL</p><div><strong id="total">—</strong><span>mm</span></div><small id="total-note"></small></article>
+      <article><p id="comparison-title">2025 · SAME PERIOD</p><div><strong id="comparison-total">—</strong><span id="comparison-unit">mm</span></div><small id="comparison-note"></small></article>
+      <article><p>RAINY DAYS</p><div><strong id="rainy">—</strong><span>days</span></div><small id="rainy-note">At least 1 mm of rain</small></article>
+      <article><p>WETTEST DAY SO FAR</p><div><strong id="peak">—</strong><span>mm</span></div><small id="peak-note"></small></article>
+    </section>
+
+    <section class="workspace" aria-label="Interactive rainfall views">
+      <div class="chart-column">
+        <div class="view-header"><div><p class="eyebrow">CHANGE THE SHAPE, KEEP THE NUMBERS</p><h2 id="view-title">A calendar of rain</h2></div><span id="view-number">01 / 04</span></div>
+        <div class="view-tabs" role="group" aria-label="Visualization mode"><button type="button" data-mode="calendar" aria-pressed="true">Calendar</button><button type="button" data-mode="bars" aria-pressed="false">Daily bars</button><button type="button" data-mode="wheel" aria-pressed="false">Rain wheel</button><button type="button" data-mode="cumulative" aria-pressed="false">Cumulative</button></div>
+        <p id="view-description" class="view-description"></p>
+        <div class="chart-wrap" id="main-chart"><svg id="chart" viewBox="0 0 920 450" role="group" aria-label="Interactive daily rainfall chart"></svg><div id="tooltip" class="tooltip" role="tooltip" hidden></div></div>
+        <div class="legend"><div class="rain-legend"><span>Daily rain / mm</span><div class="gradient"></div><div class="scale-labels"><span>0</span><span id="scale-quarter"></span><span id="scale-max"></span></div></div><div class="status-legend"><span><i class="key dry"></i>Dry</span><span><i class="key trace"></i>Trace</span><span><i class="key missing"></i>Missing / incomplete</span><span><i class="key unrevealed"></i>Not revealed</span><span><i class="key pending"></i>Not published</span></div></div>
+        <section id="comparison-chart-wrap" class="comparison-chart-wrap" aria-label="Equal-period cumulative rainfall comparison"><div class="comparison-heading"><h3>The same days, two years</h3><div><span class="series-key"><i></i><span id="selected-year-key"></span></span><span class="series-key other"><i></i><span id="other-year-key"></span></span></div></div><svg id="comparison-chart" viewBox="0 0 920 200" role="img" aria-label="Equal-period cumulative rainfall comparison"></svg><p id="matched-note"></p></section>
+      </div>
+      <aside class="detail" aria-labelledby="detail-heading"><p class="eyebrow">LOOK A LITTLE CLOSER</p><h2 id="detail-heading">A single day</h2><p class="detail-hint">Hover to glance. Click to pin.<br>Arrow keys move between dates.</p><div class="detail-date" id="detail-date"></div><div class="detail-value"><strong id="detail-value">—</strong><span id="detail-unit">mm</span></div><span class="status-badge" id="detail-status"></span><p id="detail-explanation"></p><dl class="detail-list"><div><dt>Station</dt><dd>Hong Kong Observatory</dd></div><div><dt>Publisher flag</dt><dd id="detail-flag">—</dd></div><div><dt>Same date, other year</dt><dd id="detail-other">—</dd></div><div><dt>Accumulated through date</dt><dd id="detail-cumulative">—</dd></div></dl><button type="button" id="reveal-day" class="reveal-button" hidden>Reveal through this day →</button><div class="day-navigation"><button type="button" id="previous-day" aria-label="Inspect the previous day">← Previous</button><button type="button" id="next-day" aria-label="Inspect the next day">Next →</button></div><p class="detail-footnote">Trace means less than 0.05 mm. It is visible here, and contributes a 0.0 mm lower bound to totals.</p></aside>
+    </section>
+
+    <footer class="footer"><div><h3>Observed, not predicted.</h3><p>Rainfall at the Hong Kong Observatory station, in millimetres per calendar day. This is a frozen snapshot, not a live feed or a city-wide rainfall average. Grey dates have no published observations in this snapshot.</p></div><div><h3>The honest edges</h3><p id="quality-note"></p><p>Colour uses a shared square-root scale; bar heights and wheel radii use a linear millimetre scale. Two years alone do not establish a climate trend.</p><a id="source-link" href="https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-total-rainfall" target="_blank" rel="noreferrer">Read the source ↗</a><small id="snapshot-note"></small></div></footer>
+  </main>
+  <noscript>This local viewer needs JavaScript. The saved PNG and GIF in out/ remain available without it.</noscript>
+  <!-- INLINE_DATA -->
+  <!-- INLINE_SCRIPT -->
+</body>
+</html>

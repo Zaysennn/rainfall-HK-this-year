@@ -1,0 +1,15 @@
+{
+  "publisher": "Hong Kong Observatory",
+  "station": "Hong Kong Observatory",
+  "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-total-rainfall",
+  "requested_url": "https://data.weather.gov.hk/weatherAPI/cis/csvfile/HKO/ALL/daily_HKO_RF_ALL.csv",
+  "received_url": "https://data.weather.gov.hk/weatherAPI/cis/csvfile/HKO/ALL/daily_HKO_RF_ALL.csv",
+  "downloaded_at_utc": "2026-10-01T15:48:18.443086+00:00",
+  "last_modified": "Thu, 17 Sep 2026 02:04:37 GMT",
+  "content_type": "application/octet-stream",
+  "bytes": 811065,
+  "sha256": "412d08950a68281594d826c6caa63f89134fd429811bc6b8097b44aa4733c6ba",
+  "raw_file": "daily_HKO_RF_ALL.csv",
+  "units": "mm per calendar day",
+  "note": "This JSON is project metadata; the neighbouring CSV is the unchanged response."
+}

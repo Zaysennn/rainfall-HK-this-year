@@ -1,0 +1,13 @@
+# Preserve the original response even when Git uses Windows line-ending conversion.
+data/daily_HKO_RF_ALL.csv -text
+
+*.py text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.svg text eol=lf
+*.png binary
+*.gif binary
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
