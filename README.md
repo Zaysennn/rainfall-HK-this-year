@@ -52,6 +52,9 @@ uv run --offline rainfall_main.py --offline
 
 - Try **Calendar**, **Daily bars**, **Rain wheel**, or **Cumulative**.
 - Choose a year, press **Play**, change speed, or drag the date slider.
+- Zoom **Daily bars**, **Rain wheel**, and **Cumulative** with the mouse wheel,
+  a two-finger pinch, or **+ / -** (1-16 times). Drag the enlarged chart to look
+  around; **Reset** brings back the full view. Each chart remembers its position.
 - Hover or focus a day for a quick reading.
 - Click a Calendar square—or press **Enter / Space**—for **Day weather**.
 - Use previous/next to browse dates; **Escape** closes the weather panel.

@@ -14,6 +14,7 @@ const state = {year: DATA.defaultYear, mode: "calendar", compare: true, cutoff: 
 const weatherView = {year: DATA.defaultYear, index: null, hour: 23, hours: [],
                      playing: false, speed: 1, returnFocus: true, mode: "model",
                       loading: false, query: null, request: 0};
+let chartZoom = null;
 let hourlyAnimation = null;
 let lastHourFrame = 0;
 let animation = null;
@@ -245,8 +246,8 @@ function lineView(mini = false) {
   drawing += `<path d="${cumulativePath(series().days, coordinates, cutoff)}" fill="none" stroke="${COLOURS.teal}" stroke-width="${mini ? 2.3 : 3}" pointer-events="none"/>`;
   const cursorX = coordinates(cutoff - 1, 0)[0];
   drawing += `<line x1="${cursorX}" x2="${cursorX}" y1="${top}" y2="${bottom}" stroke="${COLOURS.orange}" stroke-width="1" stroke-dasharray="3 4" pointer-events="none"/>`;
-  if (current.cumulative !== null) drawing += `<circle cx="${cursorX}" cy="${coordinates(current.index, current.cumulative)[1]}" r="3" fill="${COLOURS.teal}" pointer-events="none"/>`;
-  if (paired && paired.cumulative !== null) drawing += `<circle cx="${cursorX}" cy="${coordinates(current.index, paired.cumulative)[1]}" r="3" fill="${COLOURS.purple}" pointer-events="none"/>`;
+  if (current.cumulative !== null) drawing += `<circle data-zoom-cursor cx="${cursorX}" cy="${coordinates(current.index, current.cumulative)[1]}" r="3" fill="${COLOURS.teal}" pointer-events="none"/>`;
+  if (paired && paired.cumulative !== null) drawing += `<circle data-zoom-cursor cx="${cursorX}" cy="${coordinates(current.index, paired.cumulative)[1]}" r="3" fill="${COLOURS.purple}" pointer-events="none"/>`;
   drawing += `<text x="54" y="${mini ? 193 : 439}" class="axis-label">Accumulated completed-day rain / mm · 01 JAN–${dateLabel(current, false)}${state.cutoff > cutoff ? " · day in progress excluded" : ""}</text>`;
   return drawing;
 }
@@ -329,6 +330,7 @@ function render() {
   byId("view-number").textContent = `${number} / 04`;
   document.querySelectorAll("[data-mode]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.mode === state.mode)));
   byId("chart").innerHTML = draw();
+  chartZoom?.activate(state.mode);
   byId("chart").setAttribute("aria-label", `${title}, ${state.year}, revealed through ${dateLabel(row)}. Use arrow keys on a date to inspect nearby days.`);
   byId("seek").max = limit();
   byId("seek").value = state.cutoff;
@@ -1168,6 +1170,7 @@ function connectControls() {
     if (mark) state.mode === "calendar" ? openWeather(Number(mark.dataset.index)) : selectDay(Number(mark.dataset.index));
   });
   byId("chart").addEventListener("pointermove", event => {
+    if (chartZoom?.isInteracting()) return;
     const mark = event.target.closest("[data-index]");
     if (mark) showTooltip(event, Number(mark.dataset.index));
     else { state.hover = null; byId("tooltip").hidden = true; renderDetail(); }
@@ -1175,7 +1178,10 @@ function connectControls() {
   byId("chart").addEventListener("pointerleave", () => { state.hover = null; byId("tooltip").hidden = true; renderDetail(); });
   byId("chart").addEventListener("focusin", event => {
     const mark = event.target.closest("[data-index]");
-    if (mark) showTooltip(event, Number(mark.dataset.index));
+    if (mark) {
+      chartZoom?.reveal(mark);
+      showTooltip(event, Number(mark.dataset.index));
+    }
   });
   byId("chart").addEventListener("focusout", () => { state.hover = null; byId("tooltip").hidden = true; renderDetail(); });
   byId("chart").addEventListener("keydown", event => {
@@ -1201,6 +1207,15 @@ function initialise() {
   byId("scale-quarter").textContent = DATA.scaleMax / 4;
   byId("source-link").href = DATA.source.url;
   byId("snapshot-note").textContent = `Verified climate snapshot saved ${DATA.source.snapshotUTC.slice(0, 10)} UTC · ${DATA.source.excludedRows} invalid historical date placeholder excluded · verified SHA-256 ${DATA.source.sha256.slice(0, 12)}…`;
+  // Keep zoom listeners on the SVG root while playback redraws its marks.
+  chartZoom = window.ChartZoom.attach(byId("chart"), {
+    toolbar: byId("chart-zoom"),
+    onGesture: () => {
+      state.hover = null;
+      byId("tooltip").hidden = true;
+      renderDetail();
+    },
+  });
   connectControls();
   connectWeatherControls();
   connectLiveControls();
@@ -1212,6 +1227,7 @@ initialise();
 // A small read-only inspection hook makes automated checks independent of presentation.
 window.rainfallExplorer = Object.freeze({
   getState: () => ({...state, limit: limit()}),
+  getZoomState: () => chartZoom.getState(),
   getLiveState: () => ({...liveState, errors: [...liveState.errors], currentDate: hongKongDate()}),
   refreshLive,
   getWeatherState: () => ({open: byId("weather-dialog").open, year: weatherView.year,

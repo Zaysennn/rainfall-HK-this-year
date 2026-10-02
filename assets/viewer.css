@@ -112,3 +112,16 @@ body.weather-open{overflow:hidden}
 #hourly-panel[data-mode=model] .hourly-active-key{background:repeating-linear-gradient(135deg,#a789b5,#a789b5 3px,#dbcce4 3px,#dbcce4 4px);border-color:var(--purple)}
 #hourly-panel[data-mode=model] .hourly-legend .key.dry{border-color:var(--purple);background:#f1ecf4}
 @media(max-width:580px){.hourly-mode-controls{align-items:stretch;flex-direction:column;gap:10px}.hourly-mode-controls select{width:100%}.hourly-mode-controls button{align-self:start}.hourly-mode-note,.hourly-load-status{font-size:11px}}
+
+/* Zoom stays inside the three daily charts; the water calendar keeps its own layout. */
+.chart-zoom-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:9px 0 10px;font-size:11px;color:var(--muted)}
+.chart-zoom-toolbar button{border:1px solid var(--line);background:var(--paper);border-radius:4px;min-width:36px;min-height:36px;padding:7px 10px;line-height:1;color:var(--ink)}
+.chart-zoom-toolbar button:hover{background:#eaf0e9}
+.chart-zoom-toolbar output{min-width:46px;text-align:center;font-variant-numeric:tabular-nums;color:var(--teal)}
+.chart-zoom-toolbar .chart-zoom-reset{margin-left:4px}
+#chart-zoom-help{margin-left:7px;font-size:10px;line-height:1.6}
+#chart[data-zoom-enabled="true"]{overflow:hidden;touch-action:none;user-select:none}
+#chart[data-zoom-enabled="true"] line,#chart[data-zoom-enabled="true"] path,#chart[data-zoom-enabled="true"] circle{vector-effect:non-scaling-stroke}
+#chart[data-zoom-enabled="true"][data-zoomed="true"],#chart[data-zoom-enabled="true"][data-zoomed="true"] [data-index]{cursor:grab}
+#chart[data-zoom-dragging="true"],#chart[data-zoom-dragging="true"] [data-index]{cursor:grabbing}
+@media(max-width:580px){.chart-zoom-toolbar button{min-width:40px;min-height:40px}#chart-zoom-help{flex-basis:100%;margin-left:0}}

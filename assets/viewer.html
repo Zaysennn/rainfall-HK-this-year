@@ -44,7 +44,8 @@
         <div class="view-header"><div><p class="eyebrow">CHANGE THE SHAPE, KEEP THE NUMBERS</p><h2 id="view-title">A calendar of rain</h2></div><span id="view-number">01 / 04</span></div>
         <div class="view-tabs" role="group" aria-label="Visualization mode"><button type="button" data-mode="calendar" aria-pressed="true">Calendar</button><button type="button" data-mode="bars" aria-pressed="false">Daily bars</button><button type="button" data-mode="wheel" aria-pressed="false">Rain wheel</button><button type="button" data-mode="cumulative" aria-pressed="false">Cumulative</button></div>
         <p id="view-description" class="view-description"></p>
-        <div class="chart-wrap" id="main-chart"><svg id="chart" viewBox="0 0 920 450" role="group" aria-label="Interactive daily rainfall chart"></svg><div id="tooltip" class="tooltip" role="tooltip" hidden></div></div>
+        <div class="chart-wrap" id="main-chart"><!-- The controls change the view, never the rainfall values. -->
+<div class="chart-zoom-toolbar" id="chart-zoom" role="group" aria-label="Chart zoom" hidden><button type="button" data-zoom="out" aria-label="Zoom out" aria-describedby="chart-zoom-help">&minus;</button><output data-zoom-status aria-live="polite" aria-atomic="true">1.0&times;</output><button type="button" data-zoom="in" aria-label="Zoom in" aria-describedby="chart-zoom-help">+</button><button type="button" data-zoom="reset" class="chart-zoom-reset" aria-describedby="chart-zoom-help">Reset</button><span id="chart-zoom-help">Scroll or pinch to zoom. Drag to move.</span></div><svg id="chart" viewBox="0 0 920 450" role="group" aria-label="Interactive daily rainfall chart"></svg><div id="tooltip" class="tooltip" role="tooltip" hidden></div></div>
         <div class="legend"><div class="rain-legend"><span>Daily rain / mm</span><div class="gradient"></div><div class="scale-labels"><span>0</span><span id="scale-quarter"></span><span id="scale-max"></span></div></div><div class="status-legend"><span><i class="key dry"></i>Dry</span><span><i class="key trace"></i>Trace</span><span><i class="key missing"></i>Missing / incomplete</span><span><i class="key unrevealed"></i>Not revealed</span><span><i class="key pending"></i>Not published</span><span><i class="key provisional"></i>Provisional daily report</span><span><i class="key ongoing"></i>Day in progress</span></div></div>
         <section id="comparison-chart-wrap" class="comparison-chart-wrap" aria-label="Equal-period cumulative rainfall comparison"><div class="comparison-heading"><h3>The same days, two years</h3><div><span class="series-key"><i></i><span id="selected-year-key"></span></span><span class="series-key other"><i></i><span id="other-year-key"></span></span></div></div><svg id="comparison-chart" viewBox="0 0 920 200" role="img" aria-label="Equal-period cumulative rainfall comparison"></svg><p id="matched-note"></p></section>
       </div>
@@ -99,6 +100,7 @@
   <noscript>This local viewer needs JavaScript. The saved PNG and GIF in out/ remain available without it.</noscript>
   <!-- INLINE_DATA -->
   <!-- INLINE_HOURLY -->
-  <!-- INLINE_SCRIPT -->
+  <!-- INLINE_ZOOM -->
+<!-- INLINE_SCRIPT -->
 </body>
 </html>

@@ -262,6 +262,8 @@ def build_page(records, excluded, live=None):
                                 payload + "</script>",
         "<!-- INLINE_HOURLY -->": "<script>" + (ASSETS / "hourly.js").read_text(
             encoding="utf-8") + "</script>",
+        "<!-- INLINE_ZOOM -->": "<script>" + (ASSETS / "chart-zoom.js").read_text(
+            encoding="utf-8") + "</script>",
         "<!-- INLINE_SCRIPT -->": "<script>" + (ASSETS / "viewer.js").read_text(
             encoding="utf-8") + "</script>",
     }
