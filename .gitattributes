@@ -11,3 +11,10 @@ data/daily_HKO_RF_ALL.csv -text
 *.html text eol=lf
 *.css text eol=lf
 *.js text eol=lf
+
+# Raw weather responses override the general text rules above.
+data/weather/*.csv -text
+data/weather/hourly/*.json -text
+
+# Preserve live API bytes; provenance remains a separate text manifest.
+data/live/raw/** -text

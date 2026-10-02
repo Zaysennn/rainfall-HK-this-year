@@ -28,8 +28,10 @@ uv run rainfall_main.py
 
 This builds the GIF and stills, generates `site/index.html`, and opens the explorer
 in a browser. Keep the terminal open while using the local viewer; press **Ctrl+C**
-when finished. The page contains its data and assets, so it can also be opened
-directly from `site/index.html` without a server or internet connection.
+when finished. Startup saves recent official reports and current weather before
+building the page. The browser then requests updates every **15 minutes**; use
+**Refresh weather** to request them sooner. The page also embeds the saved observations
+and assets, so it remains readable without a server or internet connection.
 
 - Switch between **Calendar**, **Daily bars**, **Rain wheel**, and **Cumulative**
   to see the same numbers encoded as colour, height, radius, or accumulated rain.
@@ -41,9 +43,9 @@ directly from `site/index.html` without a server or internet connection.
   Disable it to explore the full 2025 calendar on its own. The unfinished 2026
   record is never compared with an entire 2025 total.
 
-The scripts use their own dependency blocks and read only the saved data.
-After uv has installed or cached Python and the declared plotting dependencies,
-they work offline. A verified GIF is reused when its source data and animation
+The scripts use their own dependency blocks. After uv has installed or cached
+Python and the declared plotting dependencies, **`--offline`** uses only checked
+local sources and disables automatic browser requests. A verified GIF is reused when its source data and animation
 code are unchanged, so opening the project again does not render every frame.
 
 For a quick visit without exporting the animation again:
@@ -55,8 +57,121 @@ uv run explore.py
 For headless generation, such as on a build machine:
 
 ```bash
-uv run rainfall_main.py --export
+uv run rainfall_main.py --export --offline
 ```
+
+## Recent reports and live updates
+
+The monthly climate CSV currently ends on **31 August 2026**. That is a publishing
+boundary, not a hard-coded calendar limit. The explorer now adds the Observatory's
+[dated Daily Weather Summary (RYES)](https://data.gov.hk/en-data/dataset/hk-hko-rss-weather-and-radiation-level-report/resource/9551ffed-5ce2-469f-b9e6-38a938febee9)
+for finished days, and its [current weather report](https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en)
+and [past-hour automatic-station rainfall](https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en)
+for the ongoing day. These are observations, not forecasts.
+
+The initial recent cache contains **1 September-1 October 2026**: 31 daily
+reports adding **94.3 mm** to the verified monthly **2,357.6 mm**, giving a
+**2,451.9 mm lower bound through 1 October**. This agrees with the Observatory's
+annual accumulated rain in the 1 October report. The calendar and playback can
+reach **2 October**, while today's unfinished daily total stays blank and out of
+annual totals, rain-day counts, peak-day selection and matched-year comparison.
+Recent reports are **provisional**, with only limited validation; their values
+and counts are distinguished from verified monthly climate records.
+
+Today's weather sheet separately displays current temperature, current humidity,
+and rain over an explicitly timed **rolling one-hour interval** at the Observatory
+station **RF023**. Each reading has its own observation time. A recent hour with
+zero rain does not establish a dry day. Daily mean humidity and cloud cover stay
+unavailable until the publisher supplies them; daily minimum/maximum humidity is
+not averaged to invent a daily mean. RYES is normally published after midnight
+for the previous day, so a complete 2 October total cannot appear before that day
+ends and the report is released.
+
+Startup updates missing dated reports, revisits the latest seven provisional
+days, and requests current weather. Raw JSON responses are saved unchanged under
+`data/live/raw/`; `data/live/manifest.json` retains versions, URLs, reception times,
+lengths and SHA-256 checksums. A failed request keeps the last valid response and
+shows a warning with its age. The live sources have different sampling intervals;
+**15-minute polling is not a promise of second-by-second measurements**.
+
+Browser requests update the displayed page in memory. Re-running the Python entry
+point saves fresh raw evidence to disk. **Offline mode** stops automatic browser
+polling; it can be changed in the page. A file opened without a connection uses
+its embedded snapshot. These commands provide explicit cached operation:
+
+```bash
+uv run rainfall_main.py --offline
+uv run explore.py --offline
+uv run explore.py --build-only --offline
+uv run live.py --offline
+uv run test_live.py
+```
+
+To update the raw live cache without opening the viewer, use `uv run live.py`.
+The exported GIF and PNG/SVG stills continue to use the verified monthly snapshot,
+so their August endpoint differs from the explorer's more recent provisional
+record. Their dates and provenance remain visible.
+
+## Look inside a day
+
+Click a **Calendar** square, or focus it and press **Enter** or **Space**, to
+open **Day weather**. The sheet shows the saved daily rain, maximum and minimum
+temperature, mean relative humidity, and mean cloud amount for that date.
+Use the previous/next controls to change dates; close the sheet or press
+**Escape** to return to the calendar. Opening it pauses yearly playback, while
+the yearly cursor stays where it was.
+
+The four extra daily elements are official Hong Kong Observatory observations.
+Eight original CSV responses are saved unchanged in `data/weather/`: four for
+2025 and four for 2026. They cover all **365 days of 2025** and **243 days of
+2026, 1 January through 31 August**. `manifest.json` records each source URL,
+download time, coverage, units, response size, and SHA-256 checksum. Each value
+retains its own completeness flag; an absent temperature or cloud observation
+does not erase the other observations on that day.
+
+For example, **15 June 2026** has **122.6 mm** of official daily rain, a maximum
+temperature of **29.9 degrees Celsius**, a minimum of **25.2 degrees Celsius**,
+mean humidity of **91%**, and mean cloud amount of **96%**. Humidity and cloud
+are daily means, rather than a description of every hour. Recent RYES reports
+add maximum/minimum temperatures, but do not provide these daily means.
+
+The hourly area reserves 24 one-hour slots, with exact-value inspection,
+play/pause, a speed control, and a slider. Real cached automatic-station
+observations can fill these slots; measured zero and missing hours remain
+separate. The historical snapshot has **no precise station hourly observations**:
+the official archive query did not supply the requested historical feed. Live
+responses may gradually add real whole-hour observations to the cache; updates
+ending on a quarter-hour are shown only as rolling current readings.
+Dates without any saved whole-hour observations show missing slots and disabled
+playback; future intervals on the ongoing day are separately marked pending. This means the project
+has not obtained the records, not that the Observatory has no records.
+
+Hourly observations are provisional AWS data, a different source from the
+official daily climate record. Only non-overlapping whole-hour windows are
+used: the day's 00-01 interval ends at 01:00, and 23-24 ends at next-day 00:00,
+all in Hong Kong time (UTC+08:00). Quarter-hour updates must not be added
+together, and the daily rain is never divided into made-up hourly amounts.
+
+To inspect the existing weather cache without requesting anything:
+
+```bash
+uv run weather.py
+uv run test_weather.py
+```
+
+For initial weather download, or to request a selected historical hourly day:
+
+```bash
+uv run fetch_weather.py
+uv run fetch_weather.py --hourly-only --hourly-date 2026-06-15
+```
+
+Existing raw files are checksum-verified and kept. Hourly downloads are optional
+and may be unavailable for the requested date; their query status is recorded
+separately. An existing proxy can be passed explicitly with `--proxy URL`; no
+local port is built into the code. On Windows the downloader uses TLS 1.2 with
+normal certificate validation. The historical download helper remains optional;
+recent automatic updates use the separate `live.py` layer.
 
 ## Scripts and outputs
 
@@ -65,12 +180,17 @@ Run these commands from the project folder. For normal use, start with
 
 | Script | Command | Purpose and output |
 |---|---|---|
-| `rainfall_main.py` | `uv run rainfall_main.py` | Build the PNG/SVG stills, generate or reuse a verified GIF, build the offline page, and open the interactive explorer. |
-| `explore.py` | `uv run explore.py` | Build and open the interactive page without exporting images or a GIF. |
+| `rainfall_main.py` | `uv run rainfall_main.py` | Update the live cache, build the PNG/SVG stills, generate or reuse a verified GIF, and open the interactive explorer. Add `--offline` for cached operation. |
+| `explore.py` | `uv run explore.py` | Update recent observations and open the interactive page without exporting images or a GIF. Add `--offline` for cached operation. |
 | `animate.py` | `uv run animate.py` | Export `out/rainfall-2026.gif` and `out/rainfall-animation-preview.png`. |
 | `number.py` | `uv run number.py` | Verify the raw snapshot and print date coverage, rainfall totals, rainy-day counts, Trace counts, and peak days. This module also supplies the shared data functions. |
 | `fetch.py` | `uv run fetch.py` | Download the raw snapshot if it is absent; otherwise check its checksum without requesting or replacing it. |
 | `test_rainfall.py` | `uv run test_rainfall.py` | Run the focused checks for parsing, data quality, comparison windows, and playback statistics. |
+| `weather.py` | `uv run weather.py` | Verify cached daily weather and report hourly availability without networking. |
+| `fetch_weather.py` | `uv run fetch_weather.py` | Save missing official weather responses with provenance; optionally request selected historical hourly dates. |
+| `live.py` | `uv run live.py` | Save recent dated reports and current observations as immutable raw versions. Use `--offline` to inspect the cache. |
+| `test_live.py` | `uv run test_live.py` | Verify provisional values, observation intervals, cache integrity, failed-request fallback and the current-day boundary without networking. |
+| `test_weather.py` | `uv run test_weather.py` | Check weather quality, date joins, checksums, and hourly time-window semantics. |
 | `check.py` | `uv run check.py --assignment 2` | Run the course's assignment-2 checklist for documentation, scripts, data, pictures, and Git history. |
 
 For animation export alone:
@@ -89,7 +209,7 @@ run instead of checking the main entry point's animation cache.
 For an interactive page without opening a browser or starting a server:
 
 ```bash
-uv run explore.py --build-only
+uv run explore.py --build-only --offline
 ```
 
 The generated `site/index.html` embeds its checked data, styles, and JavaScript.
@@ -135,7 +255,9 @@ playback date and revealed numbers. Cumulative inspection stays within the
 published exploration window. The wheel's small status dots do not encode rain
 amounts; bars use a one-pixel visibility floor for tiny readings and zero.
 
-The cumulative lines compare **1 January-31 August in both years**. Recorded rain
+The exported GIF and still cumulative lines compare **1 January-31 August in both years**.
+The interactive explorer can extend this comparison through available finished
+recent days; its labels distinguish provisional and verified values. Recorded rain
 over that window is **2,357.6 mm in 2026** and **1,985.3 mm in 2025**, about **18.8%
 more in 2026**. A rainy day here means at least 1 mm: 85 such days in 2026, compared
 with 73 in the same 2025 window. These are two years of observations, not evidence

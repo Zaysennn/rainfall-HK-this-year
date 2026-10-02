@@ -7,9 +7,10 @@
 A year in rain: an animated calendar and an interactive rainfall explorer.
 
 Run: uv run rainfall_main.py
-Reads only data/. Saves a GIF, PNG/SVG previews, and the offline page, then opens
-the explorer in a browser. Use --export to build without opening a browser.
-The data is a frozen observation record, not a forecast or a live feed.
+Refreshes recent official reports, then saves a GIF, PNG/SVG previews and the
+interactive page. Use --export to build without opening a browser, and --offline
+to keep network requests off. The GIF uses the verified monthly climate snapshot;
+the explorer also shows clearly labelled provisional reports and current readings.
 """
 
 import argparse
@@ -32,7 +33,7 @@ from matplotlib.colors import LinearSegmentedColormap, PowerNorm
 from matplotlib.patches import Rectangle
 
 from animate import save_animation
-from explore import build_page, serve_page
+from explore import build_page, load_latest, serve_page
 from number import (
     PREVIOUS_YEAR, RAINY_DAY_MM, TRACE_LIMIT_MM, YEAR, comparison_end,
     coverage_end, cumulative, is_complete, read_records, summarise,
@@ -263,8 +264,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--export", action="store_true",
                         help="Save all outputs without starting the browser viewer.")
+    parser.add_argument("--offline", action="store_true",
+                        help="Use saved sources only and disable automatic browser updates.")
     options = parser.parse_args()
     records, excluded = read_records()
+    live = load_latest(records, options.offline)
     figure, notes = make_picture(records, excluded)
     OUT.mkdir(exist_ok=True)
     for extension in ("png", "svg"):
@@ -276,7 +280,7 @@ def main():
     (OUT / "summary.json").write_text(json.dumps(notes, indent=2) + "\n", encoding="utf-8")
     print(f"{YEAR}: {notes['shown_year']['total']:,.1f} mm through {notes['coverage_end']}")
     export_animation(records, excluded)
-    page = build_page(records, excluded)
+    page = build_page(records, excluded, live=live)
     if not options.export:
         serve_page(page)
 

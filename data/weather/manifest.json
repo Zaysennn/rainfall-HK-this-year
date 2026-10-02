@@ -1,0 +1,184 @@
+{
+  "version": 1,
+  "publisher": "Hong Kong Observatory",
+  "timezone": "Asia/Hong_Kong",
+  "dailyFiles": [
+    {
+      "content_type": "text/csv; charset=utf-8",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/opendata.php?dataType=CLMMAXT&year=2025&rformat=csv&station=HKO",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/opendata.php?dataType=CLMMAXT&year=2025&rformat=csv&station=HKO",
+      "snapshotUTC": "2026-10-02T13:48:30.395811+00:00",
+      "bytes": 6473,
+      "sha256": "991e404094ae6b7148da2ba60f3ff1e5230ecec2fd25343af5f9afb0d62ed0af",
+      "raw_file": "daily_HKO_CLMMAXT_2025.csv",
+      "metric": "maxTemp",
+      "year": 2025,
+      "station": "Hong Kong Observatory",
+      "unit": "degrees Celsius",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-temperature-info-hko",
+      "coverageStart": "2025-01-01",
+      "coverageEnd": "2025-12-31"
+    },
+    {
+      "content_type": "text/csv; charset=utf-8",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/opendata.php?dataType=CLMMINT&year=2025&rformat=csv&station=HKO",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/opendata.php?dataType=CLMMINT&year=2025&rformat=csv&station=HKO",
+      "snapshotUTC": "2026-10-02T13:48:30.721304+00:00",
+      "bytes": 6473,
+      "sha256": "e2cabef880eae9a24bd85cea17aefd04760b88c06e532c2c13dc924ab0caafe3",
+      "raw_file": "daily_HKO_CLMMINT_2025.csv",
+      "metric": "minTemp",
+      "year": 2025,
+      "station": "Hong Kong Observatory",
+      "unit": "degrees Celsius",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-temperature-info-hko",
+      "coverageStart": "2025-01-01",
+      "coverageEnd": "2025-12-31"
+    },
+    {
+      "content_type": "application/octet-stream",
+      "last_modified": "01/16/2026 01:26:58 +00:00",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/cis/csvfile/HKO/2025/daily_HKO_RH_2025.csv",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/cis/csvfile/HKO/2025/daily_HKO_RH_2025.csv",
+      "snapshotUTC": "2026-10-02T13:48:30.344850+00:00",
+      "bytes": 5736,
+      "sha256": "1cc310b126914b3ce6ce14e1e1842caec9e6d7e476dbd521f7085f059c267fe2",
+      "raw_file": "daily_HKO_RH_2025.csv",
+      "metric": "humidity",
+      "year": 2025,
+      "station": "Hong Kong Observatory",
+      "unit": "%",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-mean-relative-humidity",
+      "coverageStart": "2025-01-01",
+      "coverageEnd": "2025-12-31"
+    },
+    {
+      "content_type": "application/octet-stream",
+      "last_modified": "01/16/2026 01:26:53 +00:00",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/cis/csvfile/HKO/2025/daily_HKO_CLD_2025.csv",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/cis/csvfile/HKO/2025/daily_HKO_CLD_2025.csv",
+      "snapshotUTC": "2026-10-02T13:48:30.387650+00:00",
+      "bytes": 5717,
+      "sha256": "a3dfb015243b9a2351c34539667db7b3cccdd854283ac8d8733d72b09243421a",
+      "raw_file": "daily_HKO_CLD_2025.csv",
+      "metric": "cloud",
+      "year": 2025,
+      "station": "Hong Kong Observatory",
+      "unit": "%",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-mean-amount-of-cloud",
+      "coverageStart": "2025-01-01",
+      "coverageEnd": "2025-12-31"
+    },
+    {
+      "content_type": "text/csv; charset=utf-8",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/opendata.php?dataType=CLMMAXT&year=2026&rformat=csv&station=HKO",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/opendata.php?dataType=CLMMAXT&year=2026&rformat=csv&station=HKO",
+      "snapshotUTC": "2026-10-02T13:48:31.578002+00:00",
+      "bytes": 4343,
+      "sha256": "4c64bc82b0484e9f64a19873dec0b5016dfe3f2127e29bd665d64e8724caa898",
+      "raw_file": "daily_HKO_CLMMAXT_2026.csv",
+      "metric": "maxTemp",
+      "year": 2026,
+      "station": "Hong Kong Observatory",
+      "unit": "degrees Celsius",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-temperature-info-hko",
+      "coverageStart": "2026-01-01",
+      "coverageEnd": "2026-08-31"
+    },
+    {
+      "content_type": "text/csv; charset=utf-8",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/opendata.php?dataType=CLMMINT&year=2026&rformat=csv&station=HKO",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/opendata.php?dataType=CLMMINT&year=2026&rformat=csv&station=HKO",
+      "snapshotUTC": "2026-10-02T13:48:31.678142+00:00",
+      "bytes": 4343,
+      "sha256": "db62142c09a6f3bdcb314294e99d63a1f189cce7d5fae9cf6cb789c55ed4d655",
+      "raw_file": "daily_HKO_CLMMINT_2026.csv",
+      "metric": "minTemp",
+      "year": 2026,
+      "station": "Hong Kong Observatory",
+      "unit": "degrees Celsius",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-temperature-info-hko",
+      "coverageStart": "2026-01-01",
+      "coverageEnd": "2026-08-31"
+    },
+    {
+      "content_type": "application/octet-stream",
+      "last_modified": "09/17/2026 02:03:53 +00:00",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/cis/csvfile/HKO/2026/daily_HKO_RH_2026.csv",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/cis/csvfile/HKO/2026/daily_HKO_RH_2026.csv",
+      "snapshotUTC": "2026-10-02T13:48:31.390073+00:00",
+      "bytes": 3850,
+      "sha256": "1bcf82d8f23b92b251a76544f4b597bfe4df699a8fe8b6dab1a7bddf30a4d45d",
+      "raw_file": "daily_HKO_RH_2026.csv",
+      "metric": "humidity",
+      "year": 2026,
+      "station": "Hong Kong Observatory",
+      "unit": "%",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-mean-relative-humidity",
+      "coverageStart": "2026-01-01",
+      "coverageEnd": "2026-08-31"
+    },
+    {
+      "content_type": "application/octet-stream",
+      "last_modified": "09/17/2026 02:03:53 +00:00",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/cis/csvfile/HKO/2026/daily_HKO_CLD_2026.csv",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/cis/csvfile/HKO/2026/daily_HKO_CLD_2026.csv",
+      "snapshotUTC": "2026-10-02T13:48:31.607074+00:00",
+      "bytes": 3833,
+      "sha256": "fbcf1f60e2b982998d6e890613f3670e00ad6309d52137fb6a79cf50800957a6",
+      "raw_file": "daily_HKO_CLD_2026.csv",
+      "metric": "cloud",
+      "year": 2026,
+      "station": "Hong Kong Observatory",
+      "unit": "%",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-mean-amount-of-cloud",
+      "coverageStart": "2026-01-01",
+      "coverageEnd": "2026-08-31"
+    }
+  ],
+  "hourlyFiles": [],
+  "dailyQueries": {
+    "maxTemp_2025": {
+      "status": "cached",
+      "message": "Original CSV saved."
+    },
+    "minTemp_2025": {
+      "status": "cached",
+      "message": "Original CSV saved."
+    },
+    "humidity_2025": {
+      "status": "cached",
+      "message": "Original CSV saved."
+    },
+    "cloud_2025": {
+      "status": "cached",
+      "message": "Original CSV saved."
+    },
+    "maxTemp_2026": {
+      "status": "cached",
+      "message": "Original CSV saved."
+    },
+    "minTemp_2026": {
+      "status": "cached",
+      "message": "Original CSV saved."
+    },
+    "humidity_2026": {
+      "status": "cached",
+      "message": "Original CSV saved."
+    },
+    "cloud_2026": {
+      "status": "cached",
+      "message": "Original CSV saved."
+    }
+  },
+  "hourlyQueries": {
+    "2026-06-15": {
+      "status": "unavailable",
+      "message": "The official archive has no versions available for this file and date query."
+    }
+  }
+}

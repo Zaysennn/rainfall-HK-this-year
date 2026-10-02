@@ -19,6 +19,10 @@
       <div class="hero-note"><span class="live-dot" aria-hidden="true"></span><p>One station. Every day.<br>A city’s wet and dry rhythms,<br>drawn from observed rainfall.</p><span class="snapshot" id="coverage-note"></span></div>
     </section>
 
+    <section class="live-controls" aria-label="Live weather updates">
+      <div class="live-status-wrap"><span id="live-indicator" class="live-indicator" aria-hidden="true"></span><div><p id="live-status" role="status">Reading the saved weather record…</p><small id="live-observation-time"></small></div></div>
+      <div class="live-actions"><button type="button" id="live-refresh">Refresh weather ↻</button><label><input id="live-offline" type="checkbox"> Offline snapshot</label></div>
+    </section>
     <section class="instrument" aria-label="Rainfall controls">
       <div class="top-controls">
         <div class="year-group"><label for="year">OBSERVATION YEAR</label><select id="year"><option value="2026">2026</option><option value="2025">2025</option></select></div>
@@ -41,14 +45,54 @@
         <div class="view-tabs" role="group" aria-label="Visualization mode"><button type="button" data-mode="calendar" aria-pressed="true">Calendar</button><button type="button" data-mode="bars" aria-pressed="false">Daily bars</button><button type="button" data-mode="wheel" aria-pressed="false">Rain wheel</button><button type="button" data-mode="cumulative" aria-pressed="false">Cumulative</button></div>
         <p id="view-description" class="view-description"></p>
         <div class="chart-wrap" id="main-chart"><svg id="chart" viewBox="0 0 920 450" role="group" aria-label="Interactive daily rainfall chart"></svg><div id="tooltip" class="tooltip" role="tooltip" hidden></div></div>
-        <div class="legend"><div class="rain-legend"><span>Daily rain / mm</span><div class="gradient"></div><div class="scale-labels"><span>0</span><span id="scale-quarter"></span><span id="scale-max"></span></div></div><div class="status-legend"><span><i class="key dry"></i>Dry</span><span><i class="key trace"></i>Trace</span><span><i class="key missing"></i>Missing / incomplete</span><span><i class="key unrevealed"></i>Not revealed</span><span><i class="key pending"></i>Not published</span></div></div>
+        <div class="legend"><div class="rain-legend"><span>Daily rain / mm</span><div class="gradient"></div><div class="scale-labels"><span>0</span><span id="scale-quarter"></span><span id="scale-max"></span></div></div><div class="status-legend"><span><i class="key dry"></i>Dry</span><span><i class="key trace"></i>Trace</span><span><i class="key missing"></i>Missing / incomplete</span><span><i class="key unrevealed"></i>Not revealed</span><span><i class="key pending"></i>Not published</span><span><i class="key provisional"></i>Provisional daily report</span><span><i class="key ongoing"></i>Day in progress</span></div></div>
         <section id="comparison-chart-wrap" class="comparison-chart-wrap" aria-label="Equal-period cumulative rainfall comparison"><div class="comparison-heading"><h3>The same days, two years</h3><div><span class="series-key"><i></i><span id="selected-year-key"></span></span><span class="series-key other"><i></i><span id="other-year-key"></span></span></div></div><svg id="comparison-chart" viewBox="0 0 920 200" role="img" aria-label="Equal-period cumulative rainfall comparison"></svg><p id="matched-note"></p></section>
       </div>
-      <aside class="detail" aria-labelledby="detail-heading"><p class="eyebrow">LOOK A LITTLE CLOSER</p><h2 id="detail-heading">A single day</h2><p class="detail-hint">Hover to glance. Click to pin.<br>Arrow keys move between dates.</p><div class="detail-date" id="detail-date"></div><div class="detail-value"><strong id="detail-value">—</strong><span id="detail-unit">mm</span></div><span class="status-badge" id="detail-status"></span><p id="detail-explanation"></p><dl class="detail-list"><div><dt>Station</dt><dd>Hong Kong Observatory</dd></div><div><dt>Publisher flag</dt><dd id="detail-flag">—</dd></div><div><dt>Same date, other year</dt><dd id="detail-other">—</dd></div><div><dt>Accumulated through date</dt><dd id="detail-cumulative">—</dd></div></dl><button type="button" id="reveal-day" class="reveal-button" hidden>Reveal through this day →</button><div class="day-navigation"><button type="button" id="previous-day" aria-label="Inspect the previous day">← Previous</button><button type="button" id="next-day" aria-label="Inspect the next day">Next →</button></div><p class="detail-footnote">Trace means less than 0.05 mm. It is visible here, and contributes a 0.0 mm lower bound to totals.</p></aside>
+      <aside class="detail" aria-labelledby="detail-heading"><p class="eyebrow">LOOK A LITTLE CLOSER</p><h2 id="detail-heading">A single day</h2><p class="detail-hint">Hover to glance. Click a Calendar square for daily weather.<br>Arrow keys move between dates.</p><div class="detail-date" id="detail-date"></div><div class="detail-value"><strong id="detail-value">—</strong><span id="detail-unit">mm</span></div><span class="status-badge" id="detail-status"></span><p id="detail-explanation"></p><dl class="detail-list"><div><dt>Station</dt><dd>Hong Kong Observatory</dd></div><div><dt>Publisher flag</dt><dd id="detail-flag">—</dd></div><div><dt>Same date, other year</dt><dd id="detail-other">—</dd></div><div><dt>Accumulated through date</dt><dd id="detail-cumulative">—</dd></div></dl><button type="button" id="reveal-day" class="reveal-button" hidden>Reveal through this day →</button><div class="day-navigation"><button type="button" id="previous-day" aria-label="Inspect the previous day">← Previous</button><button type="button" id="next-day" aria-label="Inspect the next day">Next →</button></div><button type="button" id="open-weather" class="reveal-button">View daily weather →</button><p class="detail-footnote">Trace means less than 0.05 mm. It is visible here, and contributes a 0.0 mm lower bound to totals.</p></aside>
     </section>
 
-    <footer class="footer"><div><h3>Observed, not predicted.</h3><p>Rainfall at the Hong Kong Observatory station, in millimetres per calendar day. This is a frozen snapshot, not a live feed or a city-wide rainfall average. Grey dates have no published observations in this snapshot.</p></div><div><h3>The honest edges</h3><p id="quality-note"></p><p>Colour uses a shared square-root scale; bar heights and wheel radii use a linear millimetre scale. Two years alone do not establish a climate trend.</p><a id="source-link" href="https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-total-rainfall" target="_blank" rel="noreferrer">Read the source ↗</a><small id="snapshot-note"></small></div></footer>
+    <footer class="footer"><div><h3>Observed, not predicted.</h3><p>Rainfall at the Hong Kong Observatory station, in millimetres per calendar day. Verified daily climate records are combined with labelled provisional daily reports and dated current observations. The day in progress is excluded from daily totals. This station is not a city-wide rainfall average; unavailable dates stay empty.</p></div><div><h3>The honest edges</h3><p id="quality-note"></p><p>Colour uses a shared square-root scale; bar heights and wheel radii use a linear millimetre scale. Two years alone do not establish a climate trend.</p><a id="source-link" href="https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-total-rainfall" target="_blank" rel="noreferrer">Read the source ↗</a><small id="snapshot-note"></small></div></footer>
   </main>
+  <dialog id="weather-dialog" class="weather-dialog" aria-labelledby="weather-date" aria-describedby="weather-description">
+    <div class="weather-sheet">
+      <header class="weather-heading">
+        <div><p class="eyebrow">A DAY IN THE OBSERVATORY RECORD</p><h2 id="weather-date">Daily weather</h2></div>
+        <button type="button" id="weather-close" class="weather-close" aria-label="Close daily weather" autofocus>Close ×</button>
+      </header>
+      <p id="weather-description" class="weather-description">Daily records and dated current observations, in Hong Kong time. The yearly timeline is paused while you inspect this date.</p>
+      <div class="weather-day-navigation"><button type="button" id="weather-previous">← Previous day</button><span id="weather-day-position"></span><button type="button" id="weather-next">Next day →</button></div>
+      <dl class="weather-metrics" aria-label="Daily weather measurements">
+        <div><dt>Total rainfall</dt><dd><strong id="weather-rain">—</strong><span id="weather-rain-unit">mm</span></dd><dd class="weather-metric-status" id="weather-rain-status"></dd></div>
+        <div><dt>Highest temperature</dt><dd><strong id="weather-maxTemp">—</strong><span>°C</span></dd><dd class="weather-metric-status" id="weather-maxTemp-status"></dd></div>
+        <div><dt>Lowest temperature</dt><dd><strong id="weather-minTemp">—</strong><span>°C</span></dd><dd class="weather-metric-status" id="weather-minTemp-status"></dd></div>
+        <div><dt>Mean relative humidity</dt><dd><strong id="weather-humidity">—</strong><span>%</span></dd><dd class="weather-metric-status" id="weather-humidity-status"></dd></div>
+        <div><dt>Mean cloud cover</dt><dd><strong id="weather-cloud">—</strong><span>%</span></dd><dd class="weather-metric-status" id="weather-cloud-status"></dd></div>
+      </dl>
+      <p id="weather-daily-note" class="weather-description"></p>
+      <section id="weather-current" class="weather-current" aria-labelledby="weather-current-heading" hidden>
+        <div class="hourly-heading"><div><p class="eyebrow">AT THE OBSERVATION TIME</p><h3 id="weather-current-heading">Current weather</h3></div><span id="weather-current-time"></span></div>
+        <dl class="current-metrics"><div><dt>Observed temperature</dt><dd><strong id="current-temperature">—</strong><span>°C</span></dd><dd id="current-temperature-time" class="weather-metric-status"></dd></div><div><dt>Observed relative humidity</dt><dd><strong id="current-humidity">—</strong><span>%</span></dd><dd id="current-humidity-time" class="weather-metric-status"></dd></div><div><dt>Rain in the past hour</dt><dd><strong id="current-rainfall">—</strong><span>mm</span></dd><dd id="current-rainfall-time" class="weather-metric-status"></dd></div></dl>
+        <p id="weather-current-note" class="weather-description">These are timestamped observations, not whole-day maximum/minimum temperature, mean humidity, or daily rainfall. The rolling one-hour rain window is not added to the daily total.</p>
+      </section>
+      <section class="weather-hourly" aria-labelledby="hourly-heading">
+        <div class="hourly-heading"><div><p class="eyebrow">LOOK INSIDE THE DAY</p><h3 id="hourly-heading">Twenty-four hours of rain</h3></div><span id="hourly-coverage"></span></div>
+        <p id="hourly-availability" class="hourly-availability"></p>
+        <div id="hourly-saved-dates" class="hourly-saved-dates" hidden><label for="hourly-saved-date">Browse saved hourly dates</label><select id="hourly-saved-date" aria-label="Jump to a date with saved hourly observations"></select></div>
+        <div class="hourly-chart-scroll"><svg id="hourly-chart" viewBox="0 0 720 260" role="group" aria-label="Hourly rainfall in Hong Kong time"></svg></div>
+        <div class="hourly-legend"><span><i class="key hourly-observed"></i>Observed rain</span><span><i class="key dry"></i>Measured zero</span><span><i class="key missing"></i>Missing record</span><span><i class="key pending"></i>Not played yet</span><span><i class="key ongoing"></i>Interval not finished</span></div>
+        <div class="hourly-controls">
+          <button type="button" id="hourly-play" class="play-button" disabled aria-label="Play hourly rainfall"><span aria-hidden="true">▶</span><span id="hourly-play-label">Play hours</span></button>
+          <div class="hourly-seek-wrap"><label for="hourly-seek" class="sr-only">Inspect an hourly rainfall interval</label><input type="range" id="hourly-seek" min="0" max="23" value="23"><div class="range-labels"><span>00–01</span><span>HKT · UTC+08:00</span><span>23–24</span></div></div>
+          <div class="hourly-speed-wrap"><label for="hourly-speed">PLAYBACK</label><select id="hourly-speed"><option value="0.5">½× · 1 hour / sec</option><option value="1" selected>1× · 2 hours / sec</option><option value="2">2× · 4 hours / sec</option></select></div>
+        </div>
+        <div class="hourly-readout" aria-live="polite" aria-atomic="true"><div><span id="hourly-interval"></span><strong id="hourly-value">—</strong><span id="hourly-unit"></span></div><p id="hourly-detail"></p></div>
+        <p id="hourly-progress" class="weather-description"></p>
+        <p class="hourly-method">Each bar represents one non-overlapping interval in Hong Kong time, 00–01 through 23–24. Only an observation ending exactly on the next hour can fill a slot. Missing records are not zero rain; a daily total is never divided into invented hourly values.</p>
+        <p id="hourly-source" class="hourly-method"></p>
+      </section>
+      <details class="weather-provenance"><summary>Sources and saved coverage</summary><ul id="weather-sources"></ul><p>Daily climate readings and automatic weather station hourly readings may use different instruments or processing. Their totals need not match. Cloud cover and humidity are daily means; they do not describe every hour.</p></details>
+    </div>
+  </dialog>
   <noscript>This local viewer needs JavaScript. The saved PNG and GIF in out/ remain available without it.</noscript>
   <!-- INLINE_DATA -->
   <!-- INLINE_SCRIPT -->
