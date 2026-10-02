@@ -88,7 +88,7 @@ def main():
         json.dump(notes, handle, indent=2, ensure_ascii=False)
         handle.write("\n")
     print(f"saved {RAW.relative_to(HERE)} — {len(raw):,} original bytes")
-    print("now run: uv run rainfall.py")
+    print("now run: uv run number.py")
 
 
 if __name__ == "__main__":

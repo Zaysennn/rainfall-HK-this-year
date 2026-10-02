@@ -32,7 +32,7 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 from matplotlib.colors import LinearSegmentedColormap, PowerNorm
 from matplotlib.patches import Rectangle
 
-from rainfall import (
+from number import (
     PREVIOUS_YEAR, TRACE_LIMIT_MM, YEAR, comparison_end, coverage_end,
     cumulative, days_to, is_complete, read_records, summarise,
 )

@@ -6,7 +6,7 @@
 """
 A year in rain: an animated calendar and an interactive rainfall explorer.
 
-Run: uv run plot.py
+Run: uv run rainfall_main.py
 Reads only data/. Saves a GIF, PNG/SVG previews, and the offline page, then opens
 the explorer in a browser. Use --export to build without opening a browser.
 The data is a frozen observation record, not a forecast or a live feed.
@@ -33,7 +33,7 @@ from matplotlib.patches import Rectangle
 
 from animate import save_animation
 from explore import build_page, serve_page
-from rainfall import (
+from number import (
     PREVIOUS_YEAR, RAINY_DAY_MM, TRACE_LIMIT_MM, YEAR, comparison_end,
     coverage_end, cumulative, is_complete, read_records, summarise,
 )
@@ -237,7 +237,7 @@ def make_picture(records, excluded):
 
 def export_animation(records, excluded):
     """Reuse a verified GIF when its data and animation code have not changed."""
-    inputs = (HERE / "animate.py").read_bytes() + (HERE / "rainfall.py").read_bytes()
+    inputs = (HERE / "animate.py").read_bytes() + (HERE / "number.py").read_bytes()
     inputs += (HERE / "data" / "source.json").read_bytes()
     fingerprint = hashlib.sha256(inputs).hexdigest()
     cache = OUT / "animation-build.json"

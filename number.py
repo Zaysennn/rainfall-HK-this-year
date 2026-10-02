@@ -6,7 +6,7 @@
 """
 Read and check the saved rainfall numbers before drawing anything.
 
-Run: uv run rainfall.py
+Run: uv run number.py
 Source: the unchanged Observatory CSV in data/daily_HKO_RF_ALL.csv.
 Prints the coverage, totals, and quality flags for 2025 and 2026. No internet.
 """

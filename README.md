@@ -6,6 +6,11 @@ Rainfall changes both the feel of the city and the rhythm of an ordinary day.
 Watch small wet days and larger bursts build a year's total, then change the
 view and inspect the individual days behind the pattern.
 
+`rainfall_main.py` is the main entry point. It uses `number.py` to read and
+validate the saved observations, then combines the animation and browser
+explorer into one project. The other scripts can also be run separately for
+data inspection, animation export, or a quick visit to the interactive page.
+
 ![Animated rainfall calendar with a moving date cursor and synchronized cumulative rain for 2026 and the same period in 2025.](out/rainfall-2026.gif)
 
 ![Still preview of the rainfall animation at the final published date.](out/rainfall-animation-preview.png)
@@ -18,7 +23,7 @@ are also included for reading or printing.
 ## Run and explore
 
 ```bash
-uv run plot.py
+uv run rainfall_main.py
 ```
 
 This builds the GIF and stills, generates `site/index.html`, and opens the explorer
@@ -50,8 +55,47 @@ uv run explore.py
 For headless generation, such as on a build machine:
 
 ```bash
-uv run plot.py --export
+uv run rainfall_main.py --export
 ```
+
+## Scripts and outputs
+
+Run these commands from the project folder. For normal use, start with
+`uv run rainfall_main.py`; running every helper script separately is unnecessary.
+
+| Script | Command | Purpose and output |
+|---|---|---|
+| `rainfall_main.py` | `uv run rainfall_main.py` | Build the PNG/SVG stills, generate or reuse a verified GIF, build the offline page, and open the interactive explorer. |
+| `explore.py` | `uv run explore.py` | Build and open the interactive page without exporting images or a GIF. |
+| `animate.py` | `uv run animate.py` | Export `out/rainfall-2026.gif` and `out/rainfall-animation-preview.png`. |
+| `number.py` | `uv run number.py` | Verify the raw snapshot and print date coverage, rainfall totals, rainy-day counts, Trace counts, and peak days. This module also supplies the shared data functions. |
+| `fetch.py` | `uv run fetch.py` | Download the raw snapshot if it is absent; otherwise check its checksum without requesting or replacing it. |
+| `test_rainfall.py` | `uv run test_rainfall.py` | Run the focused checks for parsing, data quality, comparison windows, and playback statistics. |
+| `check.py` | `uv run check.py --assignment 2` | Run the course's assignment-2 checklist for documentation, scripts, data, pictures, and Git history. |
+
+For animation export alone:
+
+```bash
+uv run animate.py
+```
+
+This command exports files; it does not open an animation window. Rendering may
+take a few minutes. The terminal prints `Rendering ...` at the start and `wrote` messages for the
+saved outputs at the end. Keep the command running until it finishes. Open
+the resulting GIF to view the animation.
+Unlike the main entry point, this standalone command renders the GIF on every
+run instead of checking the main entry point's animation cache.
+
+For an interactive page without opening a browser or starting a server:
+
+```bash
+uv run explore.py --build-only
+```
+
+The generated `site/index.html` embeds its checked data, styles, and JavaScript.
+It can be opened directly in a browser. Editable viewer assets remain in
+`assets/`, raw observations and provenance in `data/`, and exported pictures
+and the GIF in `out/`.
 
 ## The numbers
 
@@ -108,7 +152,7 @@ a cumulative line stops at the first such gap rather than silently bridging it.
 ## Inspect or fetch
 
 ```bash
-uv run rainfall.py
+uv run number.py
 uv run test_rainfall.py
 uv run fetch.py
 ```
@@ -128,7 +172,15 @@ Pages settings. No live page is claimed until that deployment actually succeeds.
 
 ## Assignment status
 
-This local draft includes the raw data, animated and interactive views, still
-preview, process note, and course workflows. The new files still need to be committed and pushed by
-the author. The assignment also requires a real history across more than one
-day; that history must come from actual work, not fabricated timestamps.
+The project includes the raw snapshot, animated and interactive views, still
+previews, and the course workflows. Before submitting, include an honest
+`PROCESS.md` describing the actual tools and AI assistance, one choice kept,
+and one choice rejected. Keep this required note at the project root and commit it with the work.
+
+Commit and push the source files, raw data, exported pictures, and documentation,
+including the updated filenames and imports. The assignment requires a public
+repository and at least three genuine commits across at least two days.
+That history must come from actual work, not fabricated timestamps. Run
+`uv run check.py --assignment 2` to inspect the local checklist before submission.
+A passing checklist verifies structure; it does not judge the design or replace
+an author's review of the work.

@@ -15,7 +15,7 @@ import datetime as dt
 import io
 import unittest
 
-from rainfall import comparison_end, cumulative, parse_rows, read_records, summarise
+from number import comparison_end, cumulative, parse_rows, read_records, summarise
 from explore import build_payload, describe_day, prepare_year
 
 # ---------------------------------------------------------------------------

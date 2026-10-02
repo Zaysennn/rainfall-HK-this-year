@@ -22,7 +22,7 @@ import math
 import webbrowser
 from pathlib import Path
 
-from rainfall import (
+from number import (
     NOTES, PREVIOUS_YEAR, RAINY_DAY_MM, TRACE_LIMIT_MM, YEAR,
     coverage_end, is_complete, read_records,
 )
