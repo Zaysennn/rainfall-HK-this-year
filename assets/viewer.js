@@ -5,13 +5,15 @@
 // ---------------------------------------------------------------------------
 
 const DATA = JSON.parse(document.getElementById("rain-data").textContent);
+const hourlyData = window.HourlyData.configure(DATA);
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 const COLOURS = {teal: "#147a78", purple: "#9a718e", ink: "#20363a", orange: "#c46a34", grid: "#d9e1dc"};
 const state = {year: DATA.defaultYear, mode: "calendar", compare: true, cutoff: 1,
                selected: 0, pinned: false, playing: false, speed: 1, hover: null};
 // Daily inspection and hourly playback are independent of the yearly timeline.
 const weatherView = {year: DATA.defaultYear, index: null, hour: 23, hours: [],
-                     playing: false, speed: 1, returnFocus: true};
+                     playing: false, speed: 1, returnFocus: true, mode: "model",
+                      loading: false, query: null, request: 0};
 let hourlyAnimation = null;
 let lastHourFrame = 0;
 let animation = null;
@@ -449,22 +451,27 @@ function weatherRow() {
   return weatherView.index === null ? null : DATA.years[String(weatherView.year)].days[weatherView.index];
 }
 
-// Keep a slot for every hour. An absent or invalid reading never becomes zero.
+// Select one source without allowing model estimates into station observations.
+function hourlyDay(row) {
+  return weatherView.mode === "model" ? row.hourlyModel : row.hourly;
+}
+
 function hourlySlots(row) {
-  const supplied = new Map((row.hourly?.hours || []).filter(item =>
-    Number.isInteger(item.hour) && item.hour >= 0 && item.hour < 24).map(item => [item.hour, item]));
-  const dayStart = Date.parse(`${row.date}T00:00:00+08:00`);
-  return Array.from({length: 24}, (_, hour) => {
-    const item = supplied.get(hour);
-    const observed = item?.status === "observed" && Number.isFinite(item.mm) && item.mm >= 0;
-    const pending = !observed && dayStart + (hour + 1) * 3600000 > Date.now();
-    return {hour, mm: observed ? item.mm : null, status: observed ? "observed" : pending ? "pending" : "missing",
-            observationTime: observed ? item.observationTime : null};
-  });
+  return hourlyData.slots(row, weatherView.mode);
 }
 
 const hourLabel = hour => `${String(hour).padStart(2, "0")}–${String(hour + 1).padStart(2, "0")} HKT`;
 const observedHours = () => weatherView.hours.filter(item => item.status === "observed").length;
+const estimatedHours = () => weatherView.hours.filter(item => item.status === "estimated").length;
+const availableHours = () => observedHours() + estimatedHours();
+const hourlyKind = () => weatherView.mode === "model" ? "estimated" : "observed";
+
+// Reuse saved slots immediately while a new date is loaded in the background.
+function prepareHourlyView(row) {
+  weatherView.hours = hourlySlots(row);
+  weatherView.query = hourlyData.snapshot(row, weatherView.mode).query;
+  weatherView.loading = false;
+}
 
 // Source notes are built as text nodes, so publisher labels cannot become markup.
 function renderWeatherSources(row) {
@@ -475,7 +482,12 @@ function renderWeatherSources(row) {
   const keys = new Set(["maxTemp", "minTemp", "humidity", "cloud"].map(key => row.weather?.[key]?.source || key).filter(key => !["recentDaily", "currentWeather", "currentRain"].includes(key)));
   const sources = [rainSource, ...Array.from(keys, key => DATA.weather?.sources?.[key]).filter(Boolean)];
   // An hourly record keeps its own link, coverage, and observation source.
-  const hourlySource = DATA.weather?.sources?.[row.hourly?.source];
+  const selectedHours = hourlyDay(row);
+  const hourlySource = weatherView.mode === "model" && selectedHours ?
+    {title: selectedHours.sourceTitle || "ECMWF IFS model estimate", url: selectedHours.sourceURL,
+     station: "Model grid estimate; not an observing station", coverageStart: row.date, coverageEnd: row.date,
+     snapshotUTC: weatherView.query?.checkedAt || selectedHours.snapshotUTC || ""} :
+    DATA.weather?.sources?.[selectedHours?.source];
   if (hourlySource) sources.push(hourlySource);
   for (const key of ["recentDaily", "currentWeather", "currentRain"]) {
     const source = DATA.live?.sources?.[key];
@@ -525,42 +537,87 @@ function renderWeather() {
   }
   byId("weather-daily-note").textContent = row.status === "ongoing" ? "This day is still in progress. Completed daily rain and temperature extremes are not yet reported here. The separate observation-time panel shows actual instantaneous readings; they are not daily means or totals." : row.quality === "provisional" ? "This ended day has a provisional daily report. Its daily rainfall and temperature extremes may be revised. Mean humidity and cloud cover remain missing until genuine daily climate observations are available." : "These are dated daily observations, independently of the paused yearly playback. Missing values are not estimates. Incomplete readings are shown for inspection only.";
   renderCurrentObservation(row);
-  const count = observedHours();
-  // A shortcut leads to genuinely cached hourly dates in the inspected year.
-  const savedDates = DATA.years[String(weatherView.year)].days.filter(day => day.hourly?.completeHours > 0);
-  byId("hourly-saved-dates").hidden = savedDates.length === 0;
-  const dateSelect = byId("hourly-saved-date"), prompt = document.createElement("option");
-  prompt.value = "";
-  prompt.textContent = "Choose a date with saved hourly readings";
-  prompt.disabled = true;
-  dateSelect.replaceChildren(prompt);
-  for (const day of savedDates) {
-    const option = document.createElement("option");
-    option.value = day.index;
-    option.textContent = `${dateLabel(day)} · ${day.hourly.completeHours} / 24 observed hours`;
-    dateSelect.append(option);
-  }
-  dateSelect.value = savedDates.some(day => day.index === row.index) ? String(row.index) : "";
-  byId("hourly-coverage").textContent = `${count} / 24 observed hours`;
-  byId("hourly-availability").dataset.empty = String(count === 0);
-  const pending = weatherView.hours.filter(item => item.status === "pending").length;
-  byId("hourly-availability").textContent = count === 0 ?
-    `No observed hourly readings are saved for this date. ${pending ? `${24 - pending} finished intervals have no saved record; ${pending} intervals have not finished yet.` : "All 24 intervals are missing, not zero rainfall."} ${DATA.weather?.hourlyNote || "Historical hourly readings are not reconstructed from daily totals."}` :
-    `${count} of 24 intervals have observed station readings; ${24 - count - pending} are missing${pending ? ` and ${pending} have not finished` : ""}. Click a bar or use the slider to inspect an exact amount. Play hours to reveal saved observations in order.`;
-
-  const station = row.hourly?.station;
-  const hourlyTitle = DATA.weather?.sources?.[row.hourly?.source]?.title || row.hourly?.source;
-  byId("hourly-source").textContent = station ? `Hourly station: ${station}. ${hourlyTitle ? `Source: ${hourlyTitle}.` : ""}` : "No hourly station record is saved for this date.";
+  renderHourlySummary(row);
   renderWeatherSources(row);
   renderHours();
 }
 
-// Bars share a linear millimetre scale; missing slots use a separate hatched mark.
+// The hourly sheet states its source, quality, and request result independently.
+function renderHourlySummary(row) {
+  const model = weatherView.mode === "model", kind = hourlyKind(), count = availableHours();
+  const pending = weatherView.hours.filter(item => item.status === "pending").length;
+  const missing = 24 - count - pending, day = hourlyDay(row);
+  const query = weatherView.query || hourlyData.snapshot(row, weatherView.mode).query;
+  byId("hourly-mode").value = weatherView.mode;
+  byId("hourly-panel").dataset.mode = weatherView.mode;
+  byId("hourly-heading").textContent = model ? "Modelled hourly rainfall" : "Station hourly rainfall";
+  byId("hourly-mode-note").textContent = model ?
+    "ECMWF IFS grid estimates, not station measurements. They never replace daily rainfall, weather readings, calendar water levels, or yearly statistics." :
+    "Actual Hong Kong Observatory station records. Gaps remain missing; daily rain is not split into invented hourly values.";
+  byId("hourly-kind-label").textContent = model ? "Model estimate" : "Observed rain";
+  byId("hourly-zero-label").textContent = model ? "Estimated zero" : "Measured zero";
+  byId("hourly-coverage").textContent = `${count} / 24 ${kind} hours`;
+  byId("hourly-availability").dataset.empty = String(count === 0);
+  byId("hourly-availability").textContent =
+    `${count} of 24 intervals have ${model ? "model estimates" : "station observations"}; ${missing} are missing${pending ? ` and ${pending} have not finished` : ""}. ` +
+    (count ? "Click a bar or use the slider to inspect an exact amount. Play hours to reveal saved values in order." :
+      "No playable hourly values are saved in this mode for this date. Missing intervals are not zero rainfall.");
+
+  const labels = {cached: "Saved hourly response", partial: "Partial hourly coverage",
+    unavailable: "No usable hourly response is available from this source",
+    failed: "Hourly request failed; saved values are retained",
+    unqueried: "This date has not been queried in this mode"};
+  const status = byId("hourly-load-status");
+  status.dataset.status = weatherView.loading ? "loading" : query.status;
+  status.textContent = weatherView.loading ? "Loading this date from the local cache or source…" :
+    `${labels[query.status] || labels.unqueried}${query.message ? `. ${query.message}` : ""}${query.checkedAt ? ` · checked ${observedTime(query.checkedAt)}` : ""}.`;
+  if (!hourlyData.canRequest()) {
+    status.textContent += " Snapshot mode: only saved values can be used here. New dates load through the local viewer while it is online.";
+  } else if (!hourlyData.canRequest(row)) {
+    status.textContent += " Future dates are not requested; unfinished intervals stay pending.";
+  }
+  byId("hourly-retry").disabled = weatherView.loading || !hourlyData.canRequest(row);
+  byId("hourly-retry").textContent = weatherView.loading ? "Loading…" : "Retry / refresh date";
+
+  // Saved-date shortcuts follow the selected source instead of mixing modes.
+  const savedDates = DATA.years[String(weatherView.year)].days.filter(day =>
+    hourlyData.slots(day, weatherView.mode).some(hour => hour.mm !== null));
+  byId("hourly-saved-dates").hidden = savedDates.length === 0;
+  const dateSelect = byId("hourly-saved-date"), prompt = document.createElement("option");
+  prompt.value = "";
+  prompt.textContent = `Choose a date with saved ${kind} hours`;
+  prompt.disabled = true;
+  dateSelect.replaceChildren(prompt);
+  for (const saved of savedDates) {
+    const option = document.createElement("option");
+    const savedCount = hourlyData.slots(saved, weatherView.mode).filter(hour => hour.mm !== null).length;
+    option.value = saved.index;
+    option.textContent = `${dateLabel(saved)} · ${savedCount} / 24 ${kind} hours`;
+    dateSelect.append(option);
+  }
+  dateSelect.value = savedDates.some(day => day.index === row.index) ? String(row.index) : "";
+
+  if (model) {
+    const grid = day?.grid;
+    const coordinates = Number.isFinite(grid?.latitude) && Number.isFinite(grid?.longitude) ?
+      ` Grid point: ${grid.latitude.toFixed(4)}° N, ${grid.longitude.toFixed(4)}° E.` : " Grid coordinates are not saved for this date.";
+    byId("hourly-source").textContent = `Source: ${day?.sourceTitle || "ECMWF IFS model estimate"}.${coordinates} This is a grid estimate, not a Hong Kong Observatory instrument reading.`;
+    byId("hourly-method").textContent = "Each bar is an estimated non-overlapping HKT interval, 00–01 through 23–24. The estimate is shown only after the full interval has ended. Missing estimates remain missing; estimated zero is not a measured dry hour. Estimates do not enter the daily or yearly totals.";
+  } else {
+    const title = DATA.weather?.sources?.[day?.source]?.title || day?.sourceTitle || day?.source;
+    byId("hourly-source").textContent = day?.station ?
+      `Hourly station: ${day.station}.${title ? ` Source: ${title}.` : ""} Hourly instruments or processing may differ from the official daily total.` :
+      "No hourly station record is saved for this date. This says nothing about whether the Observatory holds other records.";
+    byId("hourly-method").textContent = "Each bar represents one non-overlapping HKT interval, 00–01 through 23–24. Only a reading ending exactly on the next hour can fill a slot. Missing records are not zero rain; overlapping rolling-hour reports are never added together.";
+  }
+}
+
+// Both sources use linear millimetres, with a distinct pattern for model estimates.
 function hourlyChart() {
   const left = 45, right = 707, top = 26, bottom = 198, step = (right - left) / 24;
   const peak = Math.max(0, ...weatherView.hours.filter(item => item.mm !== null).map(item => item.mm));
   const maximum = Math.max(1, Math.ceil(peak * 1.1));
-  let drawing = '<defs><pattern id="hourly-missing-pattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#f4dfce"/><path d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" stroke="#cda484" stroke-width="1"/></pattern></defs>';
+  let drawing = '<defs><pattern id="hourly-missing-pattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#f4dfce"/><path d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" stroke="#cda484" stroke-width="1"/></pattern><pattern id="hourly-model-pattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#a789b5"/><path d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" stroke="#dbcce4" stroke-width="1"/></pattern></defs>';
   drawing += `<rect x="${left + weatherView.hour * step}" y="${top}" width="${step}" height="${bottom - top + 12}" fill="#e6ede4"/>`;
   for (let tick = 0; tick <= 4; tick++) {
     const mm = maximum * tick / 4, y = bottom - tick / 4 * (bottom - top);
@@ -568,44 +625,50 @@ function hourlyChart() {
   }
   for (const item of weatherView.hours) {
     const x = left + item.hour * step, width = step - 6, shown = item.hour <= weatherView.hour;
-    const label = item.status === "pending" ? "interval not finished" : item.status === "missing" ? "missing observation" : item.mm === 0 ? "0.0 millimetres, measured zero" : `${fmt(item.mm)} millimetres`;
-    drawing += `<g data-hour="${item.hour}" tabindex="${item.hour === weatherView.hour ? 0 : -1}" role="button" aria-label="${hourLabel(item.hour)}: ${label}">`;
-    if (item.status === "pending") drawing += `<rect x="${x + 3}" y="${bottom - 10}" width="${width}" height="10" fill="#eee2c9" stroke="#c9aa73" stroke-width=".7" stroke-dasharray="2 2"/>`; else if (item.status === "missing") drawing += `<rect x="${x + 3}" y="${bottom - 10}" width="${width}" height="10" fill="url(#hourly-missing-pattern)"/>`;
+    const label = item.status === "pending" ? "interval not finished" : item.status === "missing" ? "missing value" :
+      `${fmt(item.mm)} millimetres, ${item.status}${item.mm === 0 ? " zero" : ""}`;
+    drawing += `<g data-hour="${item.hour}" data-kind="${item.status}" tabindex="${item.hour === weatherView.hour ? 0 : -1}" role="button" aria-label="${hourLabel(item.hour)}: ${label}">`;
+    if (item.status === "pending") drawing += `<rect x="${x + 3}" y="${bottom - 10}" width="${width}" height="10" fill="#eee2c9" stroke="#c9aa73" stroke-width=".7" stroke-dasharray="2 2"/>`;
+    else if (item.status === "missing") drawing += `<rect x="${x + 3}" y="${bottom - 10}" width="${width}" height="10" fill="url(#hourly-missing-pattern)"/>`;
     else if (!shown) drawing += `<line x1="${x + 3}" x2="${x + step - 3}" y1="${bottom - 2}" y2="${bottom - 2}" stroke="#aebeb4" stroke-width="2" stroke-dasharray="3 2"/>`;
-    else if (item.mm === 0) drawing += `<rect x="${x + 3}" y="${bottom - 2}" width="${width}" height="2" fill="#ffffff" stroke="#8da59a" stroke-width=".8"/>`;
+    else if (item.mm === 0) drawing += `<rect x="${x + 3}" y="${bottom - 2}" width="${width}" height="2" fill="${item.status === "estimated" ? "url(#hourly-model-pattern)" : "#ffffff"}" stroke="${item.status === "estimated" ? COLOURS.purple : "#8da59a"}" stroke-width=".8"/>`;
     else {
       const height = item.mm / maximum * (bottom - top);
-      drawing += `<rect x="${x + 3}" y="${bottom - height}" width="${width}" height="${height}" fill="${COLOURS.teal}"/>`;
+      drawing += `<rect x="${x + 3}" y="${bottom - height}" width="${width}" height="${height}" fill="${item.status === "estimated" ? "url(#hourly-model-pattern)" : COLOURS.teal}"/>`;
     }
     drawing += `<rect class="hour-hit" x="${x + 1}" y="${top - 3}" width="${step - 2}" height="${bottom - top + 16}" rx="2" fill="transparent" stroke="${item.hour === weatherView.hour ? COLOURS.orange : "none"}" stroke-width="1.4"/></g>`;
     if (item.hour % 3 === 0) drawing += `<text x="${x}" y="225">${String(item.hour).padStart(2, "0")}</text>`;
   }
-  drawing += `<text x="${right}" y="225" text-anchor="end">24</text><text x="${left}" y="249" class="axis-label">Hourly rain / mm · interval start–end in HKT (UTC+08:00)</text>`;
+  drawing += `<text x="${right}" y="225" text-anchor="end">24</text><text x="${left}" y="249" class="axis-label">Hourly rain / mm · ${hourlyKind()} · HKT (UTC+08:00)</text>`;
   return drawing;
 }
 
-// Every seek rebuilds the visible prefix, rather than accumulating old frames.
+// Prefix sums stay within the selected source and never enter the daily statistics.
 function renderHours() {
   const row = weatherRow();
   if (!row) return;
-  const item = weatherView.hours[weatherView.hour], count = observedHours();
+  const item = weatherView.hours[weatherView.hour], count = availableHours(), kind = hourlyKind();
   byId("hourly-chart").innerHTML = hourlyChart();
-  byId("hourly-chart").setAttribute("aria-label", `Hourly rainfall for ${dateLabel(row)}, ${count} of 24 hours observed. Use arrow keys to inspect adjacent hourly intervals.`);
+  byId("hourly-chart").setAttribute("aria-label", `Hourly rainfall for ${dateLabel(row)}, ${count} of 24 hours ${kind}. Use arrow keys to inspect adjacent hourly intervals.`);
   byId("hourly-seek").value = weatherView.hour;
-  byId("hourly-seek").setAttribute("aria-valuetext", `${hourLabel(item.hour)}: ${item.status === "pending" ? "interval not finished" : item.mm === null ? "missing observation" : `${fmt(item.mm)} millimetres`}`);
+  byId("hourly-seek").setAttribute("aria-valuetext", `${hourLabel(item.hour)}: ${item.status === "pending" ? "interval not finished" : item.mm === null ? "missing value" : `${fmt(item.mm)} ${item.status} millimetres`}`);
   byId("hourly-play").disabled = count === 0;
   byId("hourly-speed").disabled = count === 0;
   byId("hourly-play-label").textContent = weatherView.playing ? "Pause hours" : "Play hours";
-  byId("hourly-play").setAttribute("aria-label", weatherView.playing ? "Pause hourly rainfall" : "Play hourly rainfall");
+  byId("hourly-play").setAttribute("aria-label", `Play or pause ${kind} hourly rainfall`);
   byId("hourly-play").firstElementChild.textContent = weatherView.playing ? "Ⅱ" : "▶";
   byId("hourly-interval").textContent = hourLabel(item.hour);
   byId("hourly-value").textContent = item.mm === null ? "—" : fmt(item.mm);
   byId("hourly-unit").textContent = item.mm === null ? "" : "mm";
-  byId("hourly-detail").textContent = item.status === "pending" ? "This interval has not finished. No complete one-hour amount can be shown yet." : item.mm === null ? "No observed amount is saved for this interval. This gap does not mean a dry hour." :
-    `${item.mm === 0 ? "The station measured zero rain." : "Observed rainfall in this one-hour interval."}${item.observationTime ? ` Observation ending ${item.observationTime}.` : ""}`;
-  const shown = weatherView.hours.slice(0, weatherView.hour + 1), valid = shown.filter(hour => hour.status === "observed");
-  const missing = shown.filter(hour => hour.status === "missing").length, pending = shown.filter(hour => hour.status === "pending").length;
-  byId("hourly-progress").textContent = `${weatherView.hour + 1} / 24 slots shown · ${valid.length} observed · ${missing} missing · ${pending} pending. ${valid.length ? `${fmt(valid.reduce((total, hour) => total + hour.mm, 0))} mm across observed intervals only${valid.length === shown.length ? "." : "; this is not a complete period total."}` : "No hourly total can be calculated."}`;
+  byId("hourly-detail").textContent = item.status === "pending" ?
+    "This interval has not finished. No full-hour value is displayed yet." : item.mm === null ?
+    "No usable value is saved for this interval in this mode. This gap does not mean a dry hour." :
+    `${item.status === "estimated" ? (item.mm === 0 ? "The model estimates zero rain; this is not a measured zero." : "Model-estimated rainfall, not a station observation.") : (item.mm === 0 ? "The station measured zero rain." : "Observed rainfall in this one-hour interval.")}${item.observationTime ? ` Interval ending ${item.observationTime}.` : ""}`;
+  const shown = weatherView.hours.slice(0, weatherView.hour + 1);
+  const valid = shown.filter(hour => ["observed", "estimated"].includes(hour.status));
+  const missing = shown.filter(hour => hour.status === "missing").length;
+  const pending = shown.filter(hour => hour.status === "pending").length;
+  byId("hourly-progress").textContent = `${weatherView.hour + 1} / 24 slots shown · ${valid.length} ${kind} · ${missing} missing · ${pending} pending. ${valid.length ? `${fmt(valid.reduce((total, hour) => total + hour.mm, 0))} mm across ${kind} intervals only${valid.length === shown.length ? "." : "; this is not a complete period total."}` : "No hourly total can be calculated."}${weatherView.mode === "model" ? " This model sum is separate from the measured daily total." : ""}`;
 }
 
 // Closing, changing dates, or hiding the page always stops the hourly animation.
@@ -637,13 +700,31 @@ function tickHourly(timestamp) {
 }
 
 function playHourly() {
-  if (!byId("weather-dialog").open || observedHours() === 0) return;
+  if (!byId("weather-dialog").open || availableHours() === 0) return;
   if (weatherView.playing) { pauseHourly(); return; }
   if (weatherView.hour === 23) seekHour(0);
   weatherView.playing = true;
   lastHourFrame = performance.now();
   renderHours();
   hourlyAnimation = requestAnimationFrame(tickHourly);
+}
+
+// Late responses may populate the cache, but they cannot change a different sheet.
+async function loadHourlyDate(force = false) {
+  const row = weatherRow();
+  if (!row) return;
+  const mode = weatherView.mode, date = row.date, request = ++weatherView.request;
+  prepareHourlyView(row);
+  if (!hourlyData.needsRequest(row, mode, force)) { renderWeather(); return; }
+  weatherView.loading = true;
+  renderWeather();
+  const result = await hourlyData.load(row, mode, {force});
+  if (request !== weatherView.request || weatherRow()?.date !== date ||
+      weatherView.mode !== mode || !byId("weather-dialog").open) return;
+  weatherView.loading = false;
+  weatherView.query = result.query;
+  weatherView.hours = hourlySlots(row);
+  renderWeather();
 }
 
 function openWeather(index) {
@@ -654,11 +735,12 @@ function openWeather(index) {
   weatherView.index = state.selected;
   weatherView.hour = 23;
   weatherView.returnFocus = true;
-  weatherView.hours = hourlySlots(weatherRow());
+  prepareHourlyView(weatherRow());
   byId("tooltip").hidden = true;
   renderWeather();
   if (!byId("weather-dialog").open) byId("weather-dialog").showModal();
   document.body.classList.add("weather-open");
+  loadHourlyDate();
 }
 
 function changeWeatherDay(direction) {
@@ -667,13 +749,16 @@ function changeWeatherDay(direction) {
   pauseHourly();
   weatherView.index = Math.max(0, Math.min(DATA.years[String(weatherView.year)].days.length - 1, row.index + direction));
   weatherView.hour = 23;
-  weatherView.hours = hourlySlots(weatherRow());
+  prepareHourlyView(weatherRow());
   selectDay(weatherView.index);
   renderWeather();
+  loadHourlyDate();
 }
 
 function closeWeather(restoreFocus = true) {
   pauseHourly();
+  weatherView.request++;
+  weatherView.loading = false;
   weatherView.returnFocus = restoreFocus;
   if (byId("weather-dialog").open) byId("weather-dialog").close();
 }
@@ -684,6 +769,9 @@ function connectWeatherControls() {
   byId("weather-close").addEventListener("click", () => closeWeather());
   byId("weather-dialog").addEventListener("close", () => {
     pauseHourly();
+    weatherView.request++;
+    weatherView.loading = false;
+    weatherView.query = null;
     document.body.classList.remove("weather-open");
     weatherView.index = null;
     weatherView.hours = [];
@@ -694,6 +782,13 @@ function connectWeatherControls() {
   byId("hourly-saved-date").addEventListener("change", event => {
     if (event.target.value !== "") changeWeatherDay(Number(event.target.value) - weatherView.index);
   });
+  byId("hourly-mode").addEventListener("change", event => {
+    pauseHourly();
+    weatherView.mode = event.target.value === "observed" ? "observed" : "model";
+    weatherView.hour = 23;
+    loadHourlyDate();
+  });
+  byId("hourly-retry").addEventListener("click", () => { pauseHourly(); loadHourlyDate(true); });
   byId("hourly-play").addEventListener("click", playHourly);
   byId("hourly-seek").addEventListener("input", event => { pauseHourly(); seekHour(event.target.value); });
   byId("hourly-speed").addEventListener("change", event => { weatherView.speed = Number(event.target.value); });
@@ -1037,6 +1132,14 @@ function connectLiveControls() {
   byId("live-refresh").addEventListener("click", refreshLive);
   byId("live-offline").addEventListener("change", event => {
     liveState.enabled = !event.target.checked;
+    hourlyData.setOffline(event.target.checked);
+    weatherView.request++;
+    weatherView.loading = false;
+    if (weatherRow()) {
+      prepareHourlyView(weatherRow());
+      renderWeather();
+      if (!event.target.checked) loadHourlyDate();
+    }
     if (DATA.live) DATA.live.enabled = liveState.enabled;
     if (!liveState.enabled) { for (const request of liveRequests) request.abort(); scheduleLiveRefresh(); renderLiveStatus(); }
     else refreshLive();
@@ -1113,5 +1216,7 @@ window.rainfallExplorer = Object.freeze({
   refreshLive,
   getWeatherState: () => ({open: byId("weather-dialog").open, year: weatherView.year,
     index: weatherView.index, date: weatherRow()?.date || null, hour: weatherView.hour,
-    playing: weatherView.playing, speed: weatherView.speed, observedHours: observedHours()}),
+    playing: weatherView.playing, speed: weatherView.speed, mode: weatherView.mode,
+    loading: weatherView.loading, queryStatus: weatherView.query?.status || null,
+    observedHours: observedHours(), estimatedHours: estimatedHours(), availableHours: availableHours()}),
 });

@@ -97,3 +97,18 @@ body.weather-open{overflow:hidden}
 .hourly-method{overflow-wrap:anywhere}
 @media(max-width:800px){.live-controls{align-items:start;flex-direction:column;gap:13px}.live-actions{width:100%;justify-content:space-between}.current-metrics>div{padding:15px 12px}}
 @media(max-width:580px){.live-status-wrap p{font-size:10px}.current-metrics{grid-template-columns:1fr}.current-metrics>div+div{border-left:none;border-top:1px solid var(--line)}.current-metrics strong{font-size:29px}}
+
+
+/* Hourly source modes remain distinct from the measured daily record. */
+.hourly-mode-controls{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:17px 0 10px}
+.hourly-mode-controls label{display:flex;flex-direction:column;gap:7px;font-size:9px;letter-spacing:.1em;color:var(--muted);font-weight:700}
+.hourly-mode-controls select{min-width:205px;font-size:13px;letter-spacing:normal;font-weight:400;min-height:38px}
+.hourly-mode-controls button{border:1px solid var(--line);border-radius:4px;background:transparent;padding:10px 12px;font-size:11px;min-height:40px}
+.hourly-mode-note{padding:12px 14px;border-left:3px solid var(--teal);background:#eaf0e9;font-size:11px;line-height:1.8;color:var(--ink)}
+#hourly-panel[data-mode=model] .hourly-mode-note{background:#f1ecf4;border-color:var(--purple)}
+.hourly-load-status{font-size:11px;line-height:1.8;color:var(--muted);min-height:20px;margin:11px 0}
+.hourly-load-status[data-status=failed]{color:#9b6035}
+.hourly-load-status[data-status=loading]{color:var(--teal)}
+#hourly-panel[data-mode=model] .hourly-active-key{background:repeating-linear-gradient(135deg,#a789b5,#a789b5 3px,#dbcce4 3px,#dbcce4 4px);border-color:var(--purple)}
+#hourly-panel[data-mode=model] .hourly-legend .key.dry{border-color:var(--purple);background:#f1ecf4}
+@media(max-width:580px){.hourly-mode-controls{align-items:stretch;flex-direction:column;gap:10px}.hourly-mode-controls select{width:100%}.hourly-mode-controls button{align-self:start}.hourly-mode-note,.hourly-load-status{font-size:11px}}

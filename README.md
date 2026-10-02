@@ -17,8 +17,10 @@ Run this from the project folder with **uv** installed:
 uv run rainfall_main.py
 ```
 
-This updates recent weather, creates or reuses the GIF, saves the previews,
-and opens the explorer. Keep the terminal open; **Ctrl+C** stops the server.
+This updates recent weather, prepares the hourly cache, creates or reuses the
+GIF, and opens the explorer. Keep the terminal open; **Ctrl+C** stops the server.
+The first online run also downloads hourly model data for the two project years;
+later runs reuse saved historical data.
 
 The first run may need internet access for Python and dependencies.
 
@@ -63,13 +65,24 @@ and rolling one-hour rain separate, each with its own observation time.
 
 ### Inside the day
 
-The hourly chart has 24 slots, a slider, playback, and speed controls.
-**Play hours** becomes available when at least one genuine reading exists.
-**Browse saved hourly dates** helps you find dates with hourly records.
+Choose an hourly view:
 
-Only observations ending exactly on a whole hour fill these slots.
-Measured zero, missing records, and unfinished intervals remain distinct.
-A full 24-hour record is not guaranteed.
+- **Model estimate:** hourly rainfall near Hong Kong from ECMWF IFS through
+  Open-Meteo. These are grid estimates, not Observatory gauge measurements.
+- **Station observations:** genuine saved Observatory AWS readings. A full
+  24-hour record is not guaranteed.
+
+Model history is for ended dates. For today, choose station observations;
+unfinished intervals stay pending.
+
+Click a bar, drag the slider, or press **Play hours** to follow the day.
+Change speed, switch source, or retry a failed request. The panel labels its
+source, coverage, and missing intervals; estimated hours are never called observed.
+
+The daily calendar, totals, and year comparison always use Observatory daily
+records. Hourly model estimates do not change those numbers. Both sources use
+Hong Kong time and intervals 00-01 through 23-24, with the midnight reading
+assigned to the preceding day. Missing values are never filled with zero.
 
 ## Live updates and offline use
 
@@ -77,14 +90,22 @@ The viewing date follows **Hong Kong time (UTC+08:00)** within the
 configured years. Complete daily totals require an ended day and a
 published report; today stays out of completed-day statistics.
 
-- The visible page checks official sources about every **15 minutes**.
+- The visible page checks official weather sources about every **15 minutes**.
+- While the online local server runs, station rain responses are saved every
+  **5 minutes**. Only genuine whole-hour windows fill the station chart.
 - **Refresh weather** requests an update sooner.
-- **Offline snapshot** stops requests; unchecking it refreshes immediately.
+- **Offline snapshot** freezes browser updates; unchecking it refreshes the page data.
+  The terminal collector continues until **Ctrl+C**; **--offline** disables it.
 - Failed requests keep available readings and show a warning.
 
-Browser updates stay **in memory**. Reloading or closing the page loses
-those updates. Run `rainfall_main.py` or `explore.py` again to save fresh
-responses and rebuild the page.
+The local hourly service saves raw responses in **data/hourly/**; restarting
+with **--offline** reuses them. A generated page also embeds its saved hours,
+so the chart and playback work without a server or internet.
+
+Browser-only daily/current-weather updates stay in memory. Rebuild the page
+to embed them. Static pages can inspect their saved hours; new project cache
+files are saved by the local Python server. Closing a page does not stop the
+terminal's collector; **Ctrl+C** does.
 
 `live.py` saves the raw cache but does not rebuild HTML. The generated
 `site/index.html` can also be opened directly using its embedded snapshot.
@@ -97,7 +118,9 @@ citywide average. Daily rain is measured in **millimetres**.
 Sources: [Daily rainfall](https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-total-rainfall) ·
 [Daily weather reports](https://data.gov.hk/en-data/dataset/hk-hko-rss-weather-and-radiation-level-report/resource/9551ffed-5ce2-469f-b9e6-38a938febee9) ·
 [Current weather](https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en) ·
-[Past-hour rainfall](https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en)
+[Past-hour rainfall](https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en) ·
+[Hourly model data](https://open-meteo.com/en/docs/historical-weather-api) ·
+[Recent model data](https://open-meteo.com/en/docs/historical-forecast-api)
 
 - **Verified snapshot:** January–August 2026, 243 complete days,
   **2,357.6 mm**. The GIF and stills use this snapshot.
@@ -117,7 +140,7 @@ download times, and **SHA-256** checksums.
 
 | Location | Contents |
 |---|---|
-| `data/` | Original rainfall, weather, live responses, and provenance |
+| `data/` | Raw station and model responses, with source times and checksums |
 | `assets/` | Editable viewer HTML, CSS, and JavaScript |
 | `out/` | GIF and PNG/SVG previews |
 | `site/index.html` | Generated, self-contained explorer |

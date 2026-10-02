@@ -39,7 +39,7 @@ from weather import (
 # ---------------------------------------------------------------------------
 
 YEARS = (2025, 2026)
-ARCHIVE = "https://app.data.gov.hk/v1/historical-archive/"
+ARCHIVE = "https://api.data.gov.hk/v1/historical-archive/"
 MAX_BYTES = 5_000_000
 
 
@@ -190,19 +190,25 @@ def archive_versions(result):
     versions = set()
 
     def visit(value):
-        if isinstance(value, str) and re.fullmatch(r"\d{14}", value):
+        if isinstance(value, str) and re.fullmatch(r"\d{14}|\d{8}-\d{4}", value):
             versions.add(value)
         elif isinstance(value, list):
             for item in value:
                 visit(item)
         elif isinstance(value, dict):
             for key, item in value.items():
-                if re.fullmatch(r"\d{14}", str(key)):
+                if re.fullmatch(r"\d{14}|\d{8}-\d{4}", str(key)):
                     versions.add(str(key))
                 visit(item)
 
     visit(result)
     return sorted(versions)
+
+
+def archive_time(stamp):
+    """Read the publisher's capture time while preserving its original download key."""
+    pattern = "%Y%m%d-%H%M" if "-" in stamp else "%Y%m%d%H%M%S"
+    return dt.datetime.strptime(stamp, pattern).replace(tzinfo=TIMEZONE)
 
 
 def fetch_hourly(manifest, date_text, proxy=None):
@@ -235,9 +241,9 @@ def fetch_hourly(manifest, date_text, proxy=None):
         candidates = []
         for hour in range(1, 25):
             end = dt.datetime.combine(when, dt.time(), TIMEZONE) + dt.timedelta(hours=hour)
-            lower = end.strftime("%Y%m%d%H%M%S")
-            upper = (end + dt.timedelta(minutes=40)).strftime("%Y%m%d%H%M%S")
-            candidates.extend([stamp for stamp in versions if lower <= stamp < upper][:2])
+            upper = end + dt.timedelta(minutes=40)
+            candidates.extend([stamp for stamp in versions
+                               if end <= archive_time(stamp) < upper][:2])
         errors = []
         for stamp in dict.fromkeys(candidates):
             url = ARCHIVE + "get-file?" + urllib.parse.urlencode({"url": HOURLY_URL, "time": stamp})
