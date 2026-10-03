@@ -693,6 +693,96 @@
       "unit": "mm",
       "mode": "observed",
       "raw_file": "observed/20261003T144420309189_3bde1310280890dc.json"
+    },
+    {
+      "content_type": "application/json",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "snapshotUTC": "2026-10-03T15:02:06.605080+00:00",
+      "bytes": 6431,
+      "sha256": "8574cd3958ccfb4baf1a753188a6696ff739730e9423ef678b1e4fe9045fb0b0",
+      "station": "Hong Kong Observatory",
+      "stationID": "RF023",
+      "unit": "mm",
+      "mode": "observed",
+      "raw_file": "observed/20261003T150206605080_8574cd3958ccfb4b.json"
+    },
+    {
+      "content_type": "application/json",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "snapshotUTC": "2026-10-03T15:17:25.655736+00:00",
+      "bytes": 6431,
+      "sha256": "da61c4f0d34d3552693223a0a38cd73925782af85b095882dedde104efddada5",
+      "station": "Hong Kong Observatory",
+      "stationID": "RF023",
+      "unit": "mm",
+      "mode": "observed",
+      "raw_file": "observed/20261003T151725655736_da61c4f0d34d3552.json"
+    },
+    {
+      "content_type": "application/json",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "snapshotUTC": "2026-10-03T15:32:32.589691+00:00",
+      "bytes": 6431,
+      "sha256": "a3df58f4433b502267655bfeed9adc32da007482074e3b293d1a36688b92bf42",
+      "station": "Hong Kong Observatory",
+      "stationID": "RF023",
+      "unit": "mm",
+      "mode": "observed",
+      "raw_file": "observed/20261003T153232589691_a3df58f4433b5022.json"
+    },
+    {
+      "content_type": "application/json; charset=utf-8",
+      "last_modified": "",
+      "received_url": "https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=22.302&longitude=114.174&start_date=2026-10-01&end_date=2026-10-04&hourly=rain&models=ecmwf_ifs&timezone=Asia%2FHong_Kong",
+      "requested_url": "https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=22.302&longitude=114.174&start_date=2026-10-01&end_date=2026-10-04&hourly=rain&models=ecmwf_ifs&timezone=Asia%2FHong_Kong",
+      "snapshotUTC": "2026-10-03T16:02:48.031420+00:00",
+      "bytes": 2568,
+      "sha256": "2631c772251871b00b6fc78df28d456fab84fae04c4073d6cfe867f1853fd6a1",
+      "sourceTitle": "Open-Meteo ECMWF IFS historical forecast model estimate",
+      "sourceType": "historicalForecast",
+      "model": "ecmwf_ifs",
+      "startDate": "2026-10-01",
+      "endDate": "2026-10-03",
+      "grid": {
+        "latitude": 22.319859,
+        "longitude": 114.198555
+      },
+      "mode": "model",
+      "raw_file": "model/20261003T160248031420_2631c772251871b0.json"
+    },
+    {
+      "content_type": "application/json",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "snapshotUTC": "2026-10-03T16:02:53.077078+00:00",
+      "bytes": 6431,
+      "sha256": "14e65bdbdca09d5238c561d38ccb347dfc11ccf55989ada83a6006a7a9cb3fd1",
+      "station": "Hong Kong Observatory",
+      "stationID": "RF023",
+      "unit": "mm",
+      "mode": "observed",
+      "raw_file": "observed/20261003T160253077078_14e65bdbdca09d52.json"
+    },
+    {
+      "content_type": "application/json",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "snapshotUTC": "2026-10-03T16:22:18.267277+00:00",
+      "bytes": 6431,
+      "sha256": "5d53256574f4dd3844a5381df547ae0d875e018744ca8a54341b826c65723981",
+      "station": "Hong Kong Observatory",
+      "stationID": "RF023",
+      "unit": "mm",
+      "mode": "observed",
+      "raw_file": "observed/20261003T162218267277_5d53256574f4dd38.json"
     }
   ],
   "model": {
@@ -1334,8 +1424,9 @@
     "2026-09-28": "model/20261002T192930929576_6d4cbbd92471b172.json",
     "2026-09-29": "model/20261002T192930929576_6d4cbbd92471b172.json",
     "2026-09-30": "model/20261002T192930929576_6d4cbbd92471b172.json",
-    "2026-10-01": "model/20261002T192933100635_4f982291600acfc8.json",
-    "2026-10-02": "model/20261002T192933100635_4f982291600acfc8.json"
+    "2026-10-01": "model/20261003T160248031420_2631c772251871b0.json",
+    "2026-10-02": "model/20261003T160248031420_2631c772251871b0.json",
+    "2026-10-03": "model/20261003T160248031420_2631c772251871b0.json"
   },
   "queries": {
     "model:2025-01-01": {
@@ -5169,20 +5260,32 @@
     "model:2026-10-01": {
       "status": "cached",
       "message": "24 hourly model estimates are cached.",
-      "checkedAt": "2026-10-02T19:28:48.682867+00:00",
+      "checkedAt": "2026-10-03T16:02:43.277587+00:00",
       "completeHours": 24
     },
     "model:2026-10-02": {
       "status": "cached",
       "message": "24 hourly model estimates are cached.",
-      "checkedAt": "2026-10-02T19:28:48.682867+00:00",
+      "checkedAt": "2026-10-03T16:02:43.277587+00:00",
       "completeHours": 24
     },
     "observed:2026-10-03": {
       "status": "partial",
+      "message": "6 of 24 genuine RF023 hourly observations are cached.",
+      "checkedAt": "2026-10-03T16:22:15.910378+00:00",
+      "completeHours": 6
+    },
+    "model:2026-10-03": {
+      "status": "cached",
+      "message": "24 hourly model estimates are cached.",
+      "checkedAt": "2026-10-03T16:02:43.277587+00:00",
+      "completeHours": 24
+    },
+    "observed:2026-10-04": {
+      "status": "partial",
       "message": "A rolling-hour response was saved; only whole-hour endings fill calendar slots.",
-      "checkedAt": "2026-10-03T14:44:19.032346+00:00",
-      "completeHours": 4
+      "checkedAt": "2026-10-03T16:07:53.521503+00:00",
+      "completeHours": 0
     }
   }
 }

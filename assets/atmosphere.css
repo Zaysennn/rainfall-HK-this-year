@@ -243,15 +243,93 @@ body[data-atmosphere] .page { position: relative; z-index: 1; }
   100% { opacity: 0; }
 }
 
-/* The cards remain pale instruments, so their ink and rainfall scales never change. */
-body[data-atmosphere] .instrument { background: #f6fbfcfa; }
-body[data-atmosphere] .chart-column,
-body[data-atmosphere] .detail { background: #f8fcfdfa; }
-body[data-atmosphere] .live-controls { background: #e9f3f6fa; }
-body[data-atmosphere] .stats {
-  background: #f8fcfdfa;
-  border-radius: 14px;
+/* Pale glass reveals the harbour while keeping the data in familiar colours. */
+body[data-atmosphere] :is(.instrument, .chart-column, .detail, .live-controls, .stats, .atmosphere-controls) {
+  --ink: #15303d;
+  --muted: #193541;
+  --glass-alpha: .56;
+  --glass-blur: 5px;
+  background: rgba(248, 252, 253, .80);
+  border-color: rgba(174, 201, 212, .66);
   color: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45);
+}
+body[data-atmosphere] :is(.instrument, .live-controls, .atmosphere-controls) {
+  --glass-alpha: .48;
+}
+body[data-atmosphere] .detail { --glass-alpha: .54; }
+body[data-atmosphere] .stats { border: 1px solid rgba(174, 201, 212, .66); border-radius: 14px; padding: 26px 24px; }
+/* Rain-night glass stays light enough for the smaller data labels. */
+body:is([data-atmosphere=heavy], [data-atmosphere=storm]) :is(.instrument, .chart-column, .detail, .live-controls, .stats, .atmosphere-controls) {
+  --glass-alpha: .62;
+}
+/* Deeper hues protect these text readings without recolouring the data plots. */
+body[data-atmosphere] .stats #total { color: #1c546b; }
+body[data-atmosphere] .stats #comparison-total { color: #654969; }
+body[data-atmosphere] .atmosphere-controls {
+  --scene-ink: #15303d;
+  --scene-muted: #193541;
+  margin: 0 0 20px;
+  padding: 16px 24px;
+}
+
+/* Give each instrument its own reading surface and a consistent inset. */
+body[data-atmosphere] .live-controls {
+  margin: 0 0 20px;
+  padding: 18px 24px;
+  gap: 20px;
+  border: 1px solid rgba(174, 201, 212, .66);
+  border-radius: 14px;
+}
+body[data-atmosphere] .instrument {
+  margin: 0 0 20px;
+  padding: 24px;
+}
+body[data-atmosphere] .live-controls .live-actions {
+  max-width: 100%;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+body[data-atmosphere] .live-controls .live-actions :is(button, label) { min-height: 44px; }
+
+/* Narrow screens keep useful insets while leaving room for labels to wrap. */
+@media (max-width: 580px) {
+  body[data-atmosphere] .atmosphere-controls { padding: 14px 16px; }
+  body[data-atmosphere] .live-controls { padding: 16px; }
+  body[data-atmosphere] .instrument { padding: 20px 16px; }
+  body[data-atmosphere] .stats { padding: 22px 16px; }
+}
+
+/* Nested controls share the same glass; they do not add another blur pass. */
+body[data-atmosphere] .chart-column .view-tabs {
+  background: rgba(222, 235, 241, .28);
+}
+body[data-atmosphere] .chart-column .view-tabs button[aria-pressed=true] {
+  background: rgba(255, 255, 255, .92);
+  color: var(--teal-dark);
+}
+body[data-atmosphere] .chart-column .water-scale-note {
+  background: rgba(233, 244, 247, .22);
+  border-color: rgba(174, 201, 212, .48);
+  color: var(--muted);
+}
+/* The wheel year shrinks with its SVG on phones, so it needs small-text contrast. */
+body[data-atmosphere] :is(.chart-column, .detail) svg :is(.wheel-title, .water-amount) { fill: #12384c; }
+body[data-atmosphere] .live-controls .live-actions button,
+body[data-atmosphere] .detail .reveal-button { color: #12384c; }
+
+/* Browsers without backdrop filtering use the denser reading surface above. */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  body[data-atmosphere] :is(.instrument, .chart-column, .detail, .live-controls, .stats, .atmosphere-controls) {
+    background: rgba(248, 252, 253, var(--glass-alpha));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur));
+  }
+  @media (max-width: 800px) {
+    body[data-atmosphere] :is(.instrument, .chart-column, .detail, .live-controls, .stats, .atmosphere-controls) {
+      --glass-blur: 3px;
+    }
+  }
 }
 
 /* Only exposed lettering follows the scene; all data labels keep the existing ink. */
