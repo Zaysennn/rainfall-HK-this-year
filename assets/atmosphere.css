@@ -82,7 +82,11 @@ body[data-atmosphere] .page { position: relative; z-index: 1; }
 }
 .atmosphere-harbour img[data-harbour=sun] { opacity: var(--sun-opacity); }
 .atmosphere-harbour img[data-harbour=mist] { opacity: var(--mist-opacity); filter: blur(.85px); }
-.atmosphere-harbour img[data-harbour=night] { opacity: var(--night-opacity); filter: blur(.85px); }
+/* Focus on the wet window while the distant city lights soften behind it. */
+.atmosphere-harbour img[data-harbour=night] {
+  opacity: var(--night-opacity);
+  filter: blur(clamp(1.6px, .28vw, 5px));
+}
 .atmosphere-harbour::after {
   content: '';
   position: absolute;
@@ -299,10 +303,10 @@ body:is([data-atmosphere=heavy], [data-atmosphere=storm]) .hero .live-dot {
   color: var(--scene-ink);
 }
 .atmosphere-controls > div { min-width: 0; }
-#atmosphere-note { margin: 0; font-size: 11px; line-height: 1.7; }
+#atmosphere-note { margin: 0; font-size: 13px; line-height: 1.7; }
 .atmosphere-disclaimer {
   margin: 2px 0 0;
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.7;
   color: var(--scene-muted);
 }
@@ -312,7 +316,7 @@ body:is([data-atmosphere=heavy], [data-atmosphere=storm]) .hero .live-dot {
   gap: 8px;
   min-height: 38px;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 13px;
   cursor: pointer;
 }
 #atmosphere-motion { width: 17px; height: 17px; margin: 0; accent-color: #347e9d; }

@@ -379,10 +379,11 @@ function polar(angle, radius) {
 function wheelView() {
   const baseline = 103, reach = 90, count = series().days.length;
   let drawing = definitions();
+  // Stagger the larger scale labels without moving the measured ring boundaries.
   for (let tick = 0; tick <= 3; tick++) {
     const radius = baseline + reach * tick / 3;
     drawing += `<circle cx="460" cy="221" r="${radius}" fill="none" stroke="${COLOURS.grid}" stroke-width=".7"/>`;
-    if (tick > 0) drawing += `<text x="${460 + radius + 6}" y="225">${Math.round(DATA.scaleMax * tick / 3)} mm</text>`;
+    if (tick > 0) drawing += `<text x="${460 + radius + 6}" y="${225 + (tick - 1) * 18}">${Math.round(DATA.scaleMax * tick / 3)} mm</text>`;
   }
   for (const row of series().days) {
     const angle = row.index / count * Math.PI * 2;
@@ -401,13 +402,14 @@ function wheelView() {
     const hitStart = polar(angle, baseline - 9), hitTip = polar(angle, baseline + reach + 4);
     drawing += `<line ${markAttributes(row)} x1="${hitStart[0]}" y1="${hitStart[1]}" x2="${hitTip[0]}" y2="${hitTip[1]}" stroke="transparent" stroke-width="4"/>`;
     if (row.day === 1) {
-      const label = polar(angle, 213);
+      // Give the larger month labels room inside the chart boundary.
+      const label = polar(angle, 210);
       drawing += `<text x="${label[0]}" y="${label[1] + 3}" text-anchor="middle">${MONTHS[row.month - 1]}</text>`;
     }
   }
   const cursorAngle = (state.cutoff - 1) / count * Math.PI * 2;
   const pointer = polar(cursorAngle, baseline - 17), outer = polar(cursorAngle, baseline + reach + 9);
-  drawing += `<line x1="${pointer[0]}" y1="${pointer[1]}" x2="${outer[0]}" y2="${outer[1]}" stroke="${COLOURS.orange}" stroke-width="1" pointer-events="none"/><text x="460" y="209" text-anchor="middle" class="wheel-title">${state.year}</text><text x="460" y="234" text-anchor="middle">${dateLabel(series().days[state.cutoff - 1], false)}</text><text x="460" y="255" text-anchor="middle">ONE TURN = ONE YEAR</text><text x="50" y="442" class="axis-label">Distance from the inner ring = daily rain / mm${state.compare ? ` · paired ${other().year} spokes in purple` : ""}</text>`;
+  drawing += `<line x1="${pointer[0]}" y1="${pointer[1]}" x2="${outer[0]}" y2="${outer[1]}" stroke="${COLOURS.orange}" stroke-width="1" pointer-events="none"/><text x="460" y="209" text-anchor="middle" class="wheel-title">${state.year}</text><text x="460" y="234" text-anchor="middle">${dateLabel(series().days[state.cutoff - 1], false)}</text><text x="460" y="255" text-anchor="middle">ONE TURN = ONE YEAR</text><text x="50" y="442" class="axis-label">Daily rain / mm${state.compare ? ` · paired ${other().year} spokes in purple` : ""}</text>`;
   return drawing;
 }
 
@@ -441,7 +443,8 @@ function lineView(mini = false) {
   }
   for (const row of series().days.slice(0, horizon)) {
     const x = coordinates(row.index, 0)[0];
-    if (row.day === 1) drawing += `<text x="${x}" y="${bottom + 20}">${MONTHS[row.month - 1]}</text>`;
+    // Keep the last month inside the plot and separate the small chart footer.
+    if (row.day === 1) drawing += `<text x="${x}" y="${bottom + (mini ? 17 : 20)}" text-anchor="${x > right - 32 ? "end" : "start"}">${MONTHS[row.month - 1]}</text>`;
     if (!mini) drawing += `<rect ${markAttributes(row)} x="${x - (right - left) / horizon / 2}" y="${top}" width="${(right - left) / horizon}" height="${bottom - top}" fill="transparent"/>`;
   }
   if (state.compare) drawing += `<path d="${cumulativePath(other().days, coordinates, cutoff, true)}" fill="none" stroke="${COLOURS.purple}" stroke-width="2" pointer-events="none"/>`;
@@ -802,14 +805,18 @@ function renderHourlySummary(row) {
   byId("hourly-saved-dates").hidden = savedDates.length === 0;
   const dateSelect = byId("hourly-saved-date"), prompt = document.createElement("option");
   prompt.value = "";
-  prompt.textContent = `Choose a date with saved ${kind} hours`;
+  prompt.textContent = "Choose a saved date";
+  prompt.title = `Choose a date with saved ${kind} hours`;
   prompt.disabled = true;
   dateSelect.replaceChildren(prompt);
   for (const saved of savedDates) {
     const option = document.createElement("option");
     const savedCount = hourlyData.slots(saved, weatherView.mode).filter(hour => hour.mm !== null).length;
     option.value = saved.index;
-    option.textContent = `${dateLabel(saved)} · ${savedCount} / 24 ${kind} hours`;
+    // Short visible labels fit the enlarged type; the full date and source remain accessible.
+    option.textContent = `${dateLabel(saved, false)} · ${savedCount}/24 ${model ? "model" : "observed"}`;
+    option.title = `${dateLabel(saved)} · ${savedCount} / 24 ${kind} hours`;
+    option.setAttribute("aria-label", option.title);
     dateSelect.append(option);
   }
   dateSelect.value = savedDates.some(day => day.index === row.index) ? String(row.index) : "";
@@ -831,7 +838,8 @@ function renderHourlySummary(row) {
 
 // Both sources use linear millimetres, with a distinct pattern for model estimates.
 function hourlyChart() {
-  const left = 45, right = 707, top = 26, bottom = 198, step = (right - left) / 24;
+  // Leave room for longer decimal ticks at the larger label size.
+  const left = 54, right = 707, top = 26, bottom = 198, step = (right - left) / 24;
   const peak = Math.max(0, ...weatherView.hours.filter(item => item.mm !== null).map(item => item.mm));
   const maximum = Math.max(1, Math.ceil(peak * 1.1));
   let drawing = '<defs><pattern id="hourly-missing-pattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#f4dfce"/><path d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" stroke="#cda484" stroke-width="1"/></pattern><pattern id="hourly-model-pattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#a789b5"/><path d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" stroke="#dbcce4" stroke-width="1"/></pattern></defs>';
