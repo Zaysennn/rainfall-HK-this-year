@@ -783,6 +783,48 @@
       "unit": "mm",
       "mode": "observed",
       "raw_file": "observed/20261003T162218267277_5d53256574f4dd38.json"
+    },
+    {
+      "content_type": "application/json",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "snapshotUTC": "2026-10-03T16:27:19.859399+00:00",
+      "bytes": 6431,
+      "sha256": "9aaae66a2af4914d98148dfee584290a924ec4adb982ef8e97abd2ada68d324c",
+      "station": "Hong Kong Observatory",
+      "stationID": "RF023",
+      "unit": "mm",
+      "mode": "observed",
+      "raw_file": "observed/20261003T162719859399_9aaae66a2af4914d.json"
+    },
+    {
+      "content_type": "application/json",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "snapshotUTC": "2026-10-03T16:55:31.047098+00:00",
+      "bytes": 6431,
+      "sha256": "a21e4025e47336b9c130a2ecdbcf4891272ab7ea052ec2cfec9f11a1959c3a6d",
+      "station": "Hong Kong Observatory",
+      "stationID": "RF023",
+      "unit": "mm",
+      "mode": "observed",
+      "raw_file": "observed/20261003T165531047098_a21e4025e47336b9.json"
+    },
+    {
+      "content_type": "application/json",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "snapshotUTC": "2026-10-03T17:00:36.250321+00:00",
+      "bytes": 6431,
+      "sha256": "e2b0967b54f45b49dacde0baa6ee974f20c73b5515f67155dceb40d0562e6aba",
+      "station": "Hong Kong Observatory",
+      "stationID": "RF023",
+      "unit": "mm",
+      "mode": "observed",
+      "raw_file": "observed/20261003T170036250321_e2b0967b54f45b49.json"
     }
   ],
   "model": {
@@ -5284,7 +5326,7 @@
     "observed:2026-10-04": {
       "status": "partial",
       "message": "A rolling-hour response was saved; only whole-hour endings fill calendar slots.",
-      "checkedAt": "2026-10-03T16:07:53.521503+00:00",
+      "checkedAt": "2026-10-03T17:00:31.571769+00:00",
       "completeHours": 0
     }
   }

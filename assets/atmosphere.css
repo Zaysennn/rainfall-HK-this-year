@@ -243,56 +243,121 @@ body[data-atmosphere] .page { position: relative; z-index: 1; }
   100% { opacity: 0; }
 }
 
-/* Pale glass reveals the harbour while keeping the data in familiar colours. */
-body[data-atmosphere] :is(.instrument, .chart-column, .detail, .live-controls, .stats, .atmosphere-controls) {
-  --ink: #15303d;
-  --muted: #193541;
-  --glass-alpha: .56;
+/* Panel colours follow the rain scene; encoded rain colours remain independent. */
+body[data-atmosphere] {
+  --panel-rgb: 218, 235, 244;
+  --panel-ink: #163241;
+  --panel-muted: #214253;
+  --panel-accent: #164e68;
+  --panel-paired: #69466e;
+  --panel-rule: rgba(88, 127, 149, .38);
+  --panel-soft: rgba(178, 208, 223, .28);
+  --panel-selected: #d4e7f1;
+  --panel-action: #205d76;
+  --panel-action-hover: #16465a;
+  --panel-warning: #704420;
+  --panel-warning-bg: rgba(221, 181, 125, .28);
+  --panel-alpha: .58;
+  --panel-controls-alpha: .52;
+  --panel-scheme: light;
+}
+body[data-atmosphere=dry] {
+  --panel-rgb: 247, 226, 183;
+  --panel-ink: #382b18;
+  --panel-muted: #3e301d;
+  --panel-accent: #694811;
+  --panel-paired: #684064;
+  --panel-rule: rgba(135, 101, 47, .38);
+  --panel-soft: rgba(221, 192, 134, .26);
+  --panel-selected: #f2dfb8;
+  --panel-action: #78551d;
+  --panel-action-hover: #604216;
+}
+body:is([data-atmosphere=light], [data-atmosphere=trace]) {
+  --panel-rgb: 198, 228, 232;
+  --panel-ink: #173a44;
+  --panel-muted: #24434e;
+  --panel-accent: #164c59;
+  --panel-paired: #624266;
+  --panel-rule: rgba(66, 122, 136, .38);
+  --panel-soft: rgba(138, 189, 199, .24);
+  --panel-selected: #c3e1e5;
+  --panel-action: #215e6c;
+  --panel-action-hover: #174754;
+}
+body[data-atmosphere=moderate] {
+  --panel-rgb: 170, 195, 214;
+  --panel-ink: #142e3f;
+  --panel-muted: #183447;
+  --panel-accent: #123c55;
+  --panel-paired: #553553;
+  --panel-rule: rgba(43, 78, 105, .38);
+  --panel-soft: rgba(125, 157, 184, .25);
+  --panel-selected: #b3cddd;
+  --panel-action: #1e4d69;
+  --panel-action-hover: #153c55;
+  --panel-warning: #4b2b12;
+  --panel-alpha: .64;
+  --panel-controls-alpha: .60;
+}
+body:is([data-atmosphere=heavy], [data-atmosphere=storm]) {
+  --panel-rgb: 22, 47, 69;
+  --panel-ink: #eef6fc;
+  --panel-muted: #dfebf5;
+  --panel-accent: #bce6f5;
+  --panel-paired: #e1c7ee;
+  --panel-rule: rgba(174, 211, 235, .32);
+  --panel-soft: rgba(84, 127, 159, .20);
+  --panel-selected: #284b67;
+  --panel-action: #245c7d;
+  --panel-action-hover: #1c4b69;
+  --panel-warning: #ffe0a4;
+  --panel-warning-bg: rgba(125, 91, 40, .32);
+  --panel-alpha: .76;
+  --panel-controls-alpha: .74;
+  --panel-scheme: dark;
+}
+body[data-atmosphere=storm] {
+  --panel-rgb: 11, 31, 50;
+  --panel-selected: #203f59;
+  --panel-action: #1e5373;
+  --panel-action-hover: #16425f;
+}
+
+/* Reuse the current insets and gaps, with one blur pass per outer panel. */
+body[data-atmosphere] :is(.instrument, .chart-column, .detail, .live-controls, .stats, .atmosphere-controls, .weather-dialog) {
+  --ink: var(--panel-ink);
+  --muted: var(--panel-muted);
+  --line: var(--panel-rule);
+  --glass-alpha: var(--panel-alpha);
   --glass-blur: 5px;
-  background: rgba(248, 252, 253, .80);
-  border-color: rgba(174, 201, 212, .66);
+  background: rgba(var(--panel-rgb), .94);
+  border-color: var(--panel-rule);
   color: var(--ink);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22);
 }
 body[data-atmosphere] :is(.instrument, .live-controls, .atmosphere-controls) {
-  --glass-alpha: .48;
+  --glass-alpha: var(--panel-controls-alpha);
 }
-body[data-atmosphere] .detail { --glass-alpha: .54; }
-body[data-atmosphere] .stats { border: 1px solid rgba(174, 201, 212, .66); border-radius: 14px; padding: 26px 24px; }
-/* Rain-night glass stays light enough for the smaller data labels. */
-body:is([data-atmosphere=heavy], [data-atmosphere=storm]) :is(.instrument, .chart-column, .detail, .live-controls, .stats, .atmosphere-controls) {
-  --glass-alpha: .62;
-}
-/* Deeper hues protect these text readings without recolouring the data plots. */
-body[data-atmosphere] .stats #total { color: #1c546b; }
-body[data-atmosphere] .stats #comparison-total { color: #654969; }
+body[data-atmosphere] .stats { border: 1px solid var(--panel-rule); border-radius: 14px; padding: 26px 24px; }
+body[data-atmosphere] .stats #total { color: var(--panel-accent); }
+body[data-atmosphere] .stats #comparison-total { color: var(--panel-paired); }
 body[data-atmosphere] .atmosphere-controls {
-  --scene-ink: #15303d;
-  --scene-muted: #193541;
+  --scene-ink: var(--panel-ink);
+  --scene-muted: var(--panel-muted);
   margin: 0 0 20px;
   padding: 16px 24px;
 }
-
-/* Give each instrument its own reading surface and a consistent inset. */
 body[data-atmosphere] .live-controls {
   margin: 0 0 20px;
   padding: 18px 24px;
   gap: 20px;
-  border: 1px solid rgba(174, 201, 212, .66);
+  border: 1px solid var(--panel-rule);
   border-radius: 14px;
 }
-body[data-atmosphere] .instrument {
-  margin: 0 0 20px;
-  padding: 24px;
-}
-body[data-atmosphere] .live-controls .live-actions {
-  max-width: 100%;
-  flex-wrap: wrap;
-  gap: 14px;
-}
+body[data-atmosphere] .instrument { margin: 0 0 20px; padding: 24px; }
+body[data-atmosphere] .live-controls .live-actions { max-width: 100%; flex-wrap: wrap; gap: 14px; }
 body[data-atmosphere] .live-controls .live-actions :is(button, label) { min-height: 44px; }
-
-/* Narrow screens keep useful insets while leaving room for labels to wrap. */
 @media (max-width: 580px) {
   body[data-atmosphere] .atmosphere-controls { padding: 14px 16px; }
   body[data-atmosphere] .live-controls { padding: 16px; }
@@ -300,38 +365,78 @@ body[data-atmosphere] .live-controls .live-actions :is(button, label) { min-heig
   body[data-atmosphere] .stats { padding: 22px 16px; }
 }
 
-/* Nested controls share the same glass; they do not add another blur pass. */
-body[data-atmosphere] .chart-column .view-tabs {
-  background: rgba(222, 235, 241, .28);
+/* Controls and selected states belong to the panel palette, not the data scale. */
+body[data-atmosphere] :is(.chart-column .view-tabs, .chart-column .water-scale-note, .chart-zoom-toolbar button) {
+  background: var(--panel-soft);
+  border-color: var(--panel-rule);
+  color: var(--panel-muted);
 }
-body[data-atmosphere] .chart-column .view-tabs button[aria-pressed=true] {
-  background: rgba(255, 255, 255, .92);
-  color: var(--teal-dark);
+body[data-atmosphere] .chart-column .view-tabs button[aria-pressed=true],
+body[data-atmosphere] .chart-zoom-toolbar button:hover {
+  background: var(--panel-selected);
+  color: var(--panel-ink);
 }
-body[data-atmosphere] .chart-column .water-scale-note {
-  background: rgba(233, 244, 247, .22);
-  border-color: rgba(174, 201, 212, .48);
-  color: var(--muted);
+body[data-atmosphere] :is(.detail-value strong, .chart-zoom-toolbar output) { color: var(--panel-accent); }
+body[data-atmosphere] :is(.chart-column, .detail, .weather-dialog) svg :is(.wheel-title, .water-amount) { fill: var(--panel-accent); }
+body[data-atmosphere] :is(.live-controls .live-actions button, .detail .reveal-button) {
+  color: var(--panel-accent);
+  border-color: var(--panel-accent);
 }
-/* The wheel year shrinks with its SVG on phones, so it needs small-text contrast. */
-body[data-atmosphere] :is(.chart-column, .detail) svg :is(.wheel-title, .water-amount) { fill: #12384c; }
-body[data-atmosphere] .live-controls .live-actions button,
-body[data-atmosphere] .detail .reveal-button { color: #12384c; }
+body[data-atmosphere] :is(.instrument, .chart-column, .detail, .live-controls, .atmosphere-controls, .weather-dialog) :is(select, input) {
+  color: var(--panel-ink);
+  accent-color: var(--panel-accent);
+  color-scheme: var(--panel-scheme);
+}
+body[data-atmosphere] select option { background: rgb(var(--panel-rgb)); color: var(--panel-ink); }
+body[data-atmosphere] #atmosphere-motion { accent-color: var(--panel-accent); }
+body[data-atmosphere] .play-button { background: var(--panel-action); color: #fff; }
+body[data-atmosphere] .play-button:hover { background: var(--panel-action-hover); }
+body[data-atmosphere] .comparison-control input:checked + .switch { background: var(--panel-action); }
+/* An explicit tooltip pair avoids inheriting pale text as a pale background. */
+body[data-atmosphere] .tooltip { background: #142b40; color: #f0f6fc; }
+body[data-atmosphere] .status-badge { background: var(--panel-soft); color: var(--panel-accent); }
+body[data-atmosphere] .status-badge:is([data-status=unpublished], [data-status=unrevealed]) { color: var(--panel-muted); }
+body[data-atmosphere] .status-badge:is([data-status=missing], [data-status=incomplete], [data-status=ongoing], [data-quality=provisional]) {
+  background: var(--panel-warning-bg);
+  color: var(--panel-warning);
+}
 
-/* Browsers without backdrop filtering use the denser reading surface above. */
+/* The daily-weather sheet and its inset cards use the same scene colours. */
+body[data-atmosphere] .weather-dialog {
+  box-shadow: 0 28px 110px #0c223952, inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+body[data-atmosphere] .weather-dialog .weather-heading { border-color: var(--panel-rule); }
+body[data-atmosphere] .weather-dialog :is(.weather-vessel-row, .weather-metrics, .weather-current, .weather-hourly, .current-metrics, .hourly-availability, .hourly-mode-note) {
+  background: var(--panel-soft);
+  border-color: var(--panel-rule);
+}
+body[data-atmosphere] .weather-dialog :is(.weather-heading h2, .weather-vessel-copy h3, .weather-metrics strong, .current-metrics strong, .weather-close:hover, .hourly-saved-dates label, #hourly-value, .weather-provenance summary, .weather-provenance a, .hourly-load-status[data-status=loading]) {
+  color: var(--panel-accent);
+}
+body[data-atmosphere] .weather-dialog :is(.weather-close:hover, .hourly-availability, .hourly-mode-note) { border-color: var(--panel-accent); }
+body[data-atmosphere] #hourly-panel[data-mode=model] .hourly-mode-note {
+  background: var(--panel-soft);
+  border-color: var(--panel-paired);
+}
+body[data-atmosphere] .weather-dialog .hourly-availability[data-empty=true] {
+  background: var(--panel-warning-bg);
+  border-color: var(--panel-warning);
+}
+body[data-atmosphere] .weather-dialog :is(.hourly-load-status[data-status=failed], .weather-metric-status[data-status=incomplete], .weather-metric-status[data-status=provisional]) { color: var(--panel-warning); }
+/* This rectangle highlights the inspected interval; it is not a rain reading. */
+body[data-atmosphere] #hourly-chart rect[fill="#e6ede4"] { fill: var(--panel-soft); }
+
+/* Browsers without backdrop filtering keep a denser, coloured reading surface. */
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   body[data-atmosphere] :is(.instrument, .chart-column, .detail, .live-controls, .stats, .atmosphere-controls) {
-    background: rgba(248, 252, 253, var(--glass-alpha));
+    background: rgba(var(--panel-rgb), var(--glass-alpha));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     backdrop-filter: blur(var(--glass-blur));
   }
   @media (max-width: 800px) {
-    body[data-atmosphere] :is(.instrument, .chart-column, .detail, .live-controls, .stats, .atmosphere-controls) {
-      --glass-blur: 3px;
-    }
+    body[data-atmosphere] :is(.instrument, .chart-column, .detail, .live-controls, .stats, .atmosphere-controls) { --glass-blur: 3px; }
   }
 }
-
 /* Only exposed lettering follows the scene; all data labels keep the existing ink. */
 body[data-atmosphere] .masthead,
 body[data-atmosphere] .footer { border-color: var(--scene-rule); }
