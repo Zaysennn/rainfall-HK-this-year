@@ -51,6 +51,11 @@ uv run --offline rainfall_main.py --offline
 ## Have a look around
 
 - Try **Calendar**, **Daily bars**, **Rain wheel**, or **Cumulative**.
+- **Calendar** holds daily rain in moving glass vessels. Colour follows fixed
+  rainfall bands; water height follows that year's saved peak. Zero rain is
+  transparent, missing data stays marked, and the peak gently overflows.
+- Use **Water motion** to pause or resume the waves. On a small screen, scroll
+  the calendar sideways; click a vessel for its daily weather and hourly chart.
 - Choose a year, press **Play**, change speed, or drag the date slider.
 - Zoom **Daily bars**, **Rain wheel**, and **Cumulative** with the mouse wheel,
   a two-finger pinch, or **+ / -** (1-16 times). Drag the enlarged chart to look
@@ -144,9 +149,13 @@ download times, and **SHA-256** checksums.
 | Location | Contents |
 |---|---|
 | `data/` | Raw station and model responses, with source times and checksums |
-| `assets/` | Editable viewer HTML, CSS, and JavaScript |
+| `assets/` | Official page source: edit `viewer.html`, `viewer.css`, and `viewer.js` |
 | `out/` | GIF and PNG/SVG previews |
 | `site/index.html` | Generated, self-contained explorer |
+
+After editing **assets/**, run `uv run rainfall_main.py` to rebuild the official
+page. **site/index.html** is generated; direct edits are replaced on rebuild.
+The separate **water-calendar-preview.html** remains a saved design reference.
 
 For a closer look at the saved data:
 

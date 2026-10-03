@@ -7,7 +7,7 @@
 const DATA = JSON.parse(document.getElementById("rain-data").textContent);
 const hourlyData = window.HourlyData.configure(DATA);
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-const COLOURS = {teal: "#147a78", purple: "#9a718e", ink: "#20363a", orange: "#c46a34", grid: "#d9e1dc"};
+const COLOURS = {teal: "#267a97", purple: "#876b90", ink: "#263c47", orange: "#b86d40", grid: "#d7e4ea"};
 const state = {year: DATA.defaultYear, mode: "calendar", compare: true, cutoff: 1,
                selected: 0, pinned: false, playing: false, speed: 1, hover: null};
 // Daily inspection and hourly playback are independent of the yearly timeline.
@@ -83,7 +83,7 @@ function dayStatusLabel(row, status = visibleStatus(row)) {
 // Share one square-root colour scale across both years; geometry remains linear in mm.
 function rainColour(mm, palette = "teal") {
   const stops = palette === "purple" ? [[235,226,234],[184,154,177],[139,100,132],[96,63,92],[59,36,58]] :
-    [[203,233,226],[114,188,181],[38,143,139],[16,93,100],[8,56,66]];
+    [[217,239,247],[169,220,232],[102,187,208],[52,132,163],[22,75,105]];
   const position = Math.sqrt(Math.max(0, Math.min(DATA.scaleMax, mm)) / DATA.scaleMax) * (stops.length - 1);
   const low = Math.min(stops.length - 2, Math.floor(position));
   const fraction = position - low;
@@ -104,30 +104,231 @@ function dayFill(row) {
 // Each mark can be inspected with a pointer or a roving keyboard focus.
 function markAttributes(row) {
   const status = visibleStatus(row);
-  const numeric = ["rain", "dry", "trace", "incomplete"].includes(status) ? `${reading(row, status)} millimetres` : "";
+  const numeric = ["rain", "dry", "trace", "incomplete"].includes(status) ? `${reading(row, status).replaceAll("<", "&lt;")} millimetres` : "";
   return `data-index="${row.index}" data-quality="${row.quality || "verified"}" data-status="${status}" tabindex="${row.index === state.selected ? 0 : -1}" role="button" aria-label="${dateLabel(row)}: ${dayStatusLabel(row, status).toLowerCase()}, ${numeric}"`;
 }
 
 // Reusable SVG patterns make data quality visible rather than silently drawing zeros.
 function definitions() {
-  return `<defs><pattern id="ongoing-pattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#eee2c9"/><path d="M0,6 L6,0" stroke="#c9aa73" stroke-width=".8"/></pattern><pattern id="missing-pattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#f4dfce"/><path d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" stroke="#cda484" stroke-width="1"/></pattern><pattern id="unrevealed-pattern" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#eef3ef"/><circle cx="2" cy="2" r=".45" fill="#a6bbb1"/></pattern></defs>`;
+  return `<defs><pattern id="ongoing-pattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#eee2c9"/><path d="M0,6 L6,0" stroke="#c9aa73" stroke-width=".8"/></pattern><pattern id="missing-pattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#e9eef1"/><path d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" stroke="#afc0c8" stroke-width="1"/></pattern><pattern id="unrevealed-pattern" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#eef3ef"/><circle cx="2" cy="2" r=".45" fill="#a6bbb1"/></pattern></defs>`;
 }
 
 // Transform the same daily amounts into a month-by-day calendar.
+// ---------------------------------------------------------------------------
+// Glass vessels encode completed daily readings, never current rolling rain.
+// The capacity is fixed for each year's saved snapshot, independent of playback.
+// ---------------------------------------------------------------------------
+
+const waterMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+let waterMotionEnabled = !waterMotionPreference.matches;
+let waterMotionFrame = null;
+let waterLastTick = null;
+let waterLastPaint = -Infinity;
+let waterMotionTime = 0;
+let waterWaveTargets = [];
+const WATER_FRAME_MS = 1000 / 30;
+const waterCapacityCache = new Map();
+
+function waterCapacity(item) {
+  if (!waterCapacityCache.has(item.year)) {
+    const today = hongKongDate();
+    const amounts = item.days.filter(row => row.date < today && ["rain", "dry", "trace"].includes(row.status) &&
+      ["verified", "provisional"].includes(row.quality || "verified") &&
+      Number.isFinite(row.mm) && row.mm >= 0).map(row => row.mm);
+    waterCapacityCache.set(item.year, Math.max(0, ...amounts));
+  }
+  return waterCapacityCache.get(item.year);
+}
+
+function waterModel(row, status, capacity, today = hongKongDate()) {
+  const measured = row.date < today && ["rain", "dry"].includes(status) && Number.isFinite(row.mm) && row.mm >= 0 &&
+    ["verified", "provisional"].includes(row.quality || "verified");
+  const fraction = measured && capacity > 0 ? Math.min(1, row.mm / capacity) : 0;
+  return {fraction, overflow: measured && status === "rain" && row.mm > 0 &&
+          capacity > 0 && row.mm === capacity};
+}
+
+// Fixed millimetre bands make light and heavy rain easy to distinguish in both years.
+function waterColour(mm) {
+  if (!Number.isFinite(mm) || mm <= 0) return "none";
+  if (mm < 10) return "#AED9D1";
+  if (mm < 50) return "#69B6AE";
+  if (mm < 100) return "#238B87";
+  return "#17575A";
+}
+
+// Smooth cubic segments describe one sine surface; every filled vessel reuses it.
+function waterWavePath(phase) {
+  const k = Math.PI / 8, wave = x => Math.sin(k * x + phase);
+  const slope = x => k * Math.cos(k * x + phase);
+  const point = (x, y) => `${x.toFixed(3)},${y.toFixed(3)}`;
+  let path = `M${point(-64, wave(-64))}`;
+  for (let x = -64; x < 64; x += 4) {
+    const next = x + 4, step = 4 / 3;
+    path += ` C${point(x + step, wave(x) + step * slope(x))} ${point(next - step, wave(next) - step * slope(next))} ${point(next, wave(next))}`;
+  }
+  return path + " L64,2 L-64,2 Z";
+}
+
+// Stable source paths are updated directly; no SVG timing or per-day loops are needed.
+function waterDefinitions(prefix) {
+  return `<defs><linearGradient id="${prefix}-glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".65"/><stop offset=".45" stop-color="#d7edf5" stop-opacity=".16"/><stop offset="1" stop-color="#fff" stop-opacity=".4"/></linearGradient><path id="${prefix}-wave-front" d="${waterWavePath(0)}"/><path id="${prefix}-wave-back" d="${waterWavePath(Math.PI)}"/></defs>`;
+}
+
+// The outer clip bounds decorative overflow inside its own date's hit area.
+function glassTank(row, status, x, y, width, height, prefix, capacity, interactive = false, today = hongKongDate()) {
+  const model = waterModel(row, status, capacity, today), inset = interactive ? 2.5 : 10;
+  const tx = x + inset, ty = y + (interactive ? 3 : 10);
+  const tw = width - inset * 2, th = height - (interactive ? 6 : 20);
+  const clip = `${prefix}-tank-${row.index}`, outer = `${clip}-outer`;
+  const peak = model.overflow;
+  const stroke = interactive && row.index === state.selected ? COLOURS.orange :
+    interactive && row.index === state.cutoff - 1 ? COLOURS.teal :
+    status === "ongoing" ? "#b39863" : "#88acbd";
+  const qualityDash = row.quality === "provisional" && ["rain", "dry", "trace"].includes(status) ? "2 2" : "none";
+  let result = `<g ${interactive ? markAttributes(row) + ' class="water-day"' : 'aria-hidden="true"'}><clipPath id="${clip}"><rect x="${tx}" y="${ty}" width="${tw}" height="${th}" rx="${interactive ? 2 : 9}"/></clipPath><clipPath id="${outer}"><rect x="${x + .3}" y="${y + .3}" width="${width - .6}" height="${height - .6}"/></clipPath><g pointer-events="none" clip-path="url(#${outer})"><rect x="${tx}" y="${ty}" width="${tw}" height="${th}" rx="${interactive ? 2 : 9}" fill="url(#${prefix}-glass)"/>`;
+  const unavailable = ["missing", "incomplete", "unrevealed", "unpublished", "ongoing"].includes(status);
+  if (unavailable) {
+    const fill = status === "ongoing" ? "url(#ongoing-pattern)" :
+      ["missing", "incomplete"].includes(status) ? "url(#missing-pattern)" :
+      status === "unrevealed" ? "url(#unrevealed-pattern)" : "#e7edf0";
+    result += `<rect x="${tx}" y="${ty}" width="${tw}" height="${th}" rx="${interactive ? 2 : 9}" fill="${fill}" opacity=".65"/>`;
+    if (status === "ongoing") result += `<circle cx="${tx + tw / 2}" cy="${ty + th / 2}" r="${tw * .18}" fill="#fff" stroke="#ab8b52" stroke-width=".65"/><path d="M${tx + tw / 2},${ty + th / 2 - tw * .11} v${tw * .11} l${tw * .09},${tw * .05}" fill="none" stroke="#ab8b52" stroke-width=".65"/>`;
+  }
+  if (model.fraction > 0) {
+    const filled = model.fraction * th, line = ty + th - filled;
+    const amplitude = Math.min(interactive ? 1.6 : 4.5, filled * .28);
+    const colour = waterColour(row.mm);
+    const phaseOffset = row.index * 7 % 16;
+    result += `<g clip-path="url(#${clip})"><g class="water-back"><use href="#${prefix}-wave-back" x="${-phaseOffset}" transform="translate(${tx},${line - amplitude * .18}) scale(${tw / 24},${amplitude})" fill="${colour}"/></g><g class="water-front" fill="${colour}"><rect x="${tx}" y="${line + amplitude * 1.8}" width="${tw}" height="${Math.max(0, filled - amplitude * 1.8)}"/><use href="#${prefix}-wave-front" x="${-phaseOffset}" transform="translate(${tx},${line}) scale(${tw / 24},${amplitude})"/></g></g>`;
+  }
+  if (status === "trace") {
+    result += `<circle cx="${tx + tw / 2}" cy="${ty + th - (interactive ? 3 : 13)}" r="${interactive ? .95 : 3}" fill="#65a8c0"/>`;
+  }
+  if (peak) {
+    const edge = tx + tw + (interactive ? .65 : 2), drip = interactive ? .6 : 2;
+    result += `<path d="M${edge - 1},${ty + 2} Q${edge + 1},${ty - 1} ${edge},${ty + 6}" fill="none" stroke="${waterColour(row.mm)}" stroke-width="${interactive ? .8 : 2}" opacity=".8"/><path d="M${edge},${ty + 6} v${th * .45}" fill="none" stroke="${waterColour(row.mm)}" stroke-width="${interactive ? .35 : 1}" opacity=".25"/><ellipse class="water-drip" cx="${edge}" cy="${ty + 5}" rx="${drip}" ry="${drip * 1.6}" fill="${waterColour(row.mm)}"/><ellipse class="water-drip second" cx="${tx - (interactive ? .6 : 2)}" cy="${ty + 4}" rx="${drip * .7}" ry="${drip}" fill="${waterColour(row.mm)}"/>`;
+  }
+  result += `<path class="glass-highlight" d="M${tx + tw * .12},${ty + 2} h${tw * .09} v${Math.max(0, th - 4)} h${-tw * .09}Z"/><path class="glass-lip" d="M${tx + 1},${ty + 1} h${tw - 2}"/><path class="glass-base" d="M${tx + 2},${ty + th - 1} h${tw - 4}"/><rect class="glass-outline" x="${tx}" y="${ty}" width="${tw}" height="${th}" rx="${interactive ? 2 : 9}" stroke="${stroke}" stroke-width="${interactive && row.index === state.selected ? 1.6 : .65}" stroke-dasharray="${qualityDash}"/></g>`;
+  if (interactive) result += `<rect class="water-hit" x="${x}" y="${y}" width="${width}" height="${height}" fill="transparent" stroke="none" pointer-events="all"/>`;
+  return result + "</g>";
+}
+
+function updateWaterScale() {
+  const capacity = waterCapacity(series());
+  const peakRevealed = series().days.some(row => visibleStatus(row) === "rain" && row.mm === capacity);
+  byId("water-scale-note").hidden = state.mode !== "calendar";
+  byId("water-colour-legend").hidden = state.mode !== "calendar";
+  byId("water-scale-text").textContent = `Water height follows ${state.year}'s peak completed-day reading in this saved snapshot${peakRevealed ? ` (${fmt(capacity)} mm = full)` : ""}. Half-full = 50%. Heights are relative within each year; use mm to compare years. Colour bands are fixed in millimetres; overflow marks the peak.`;
+  byId("chart").parentElement.dataset.waterMode = String(state.mode === "calendar");
+}
+
+function renderWeatherVessel(row) {
+  const item = DATA.years[String(weatherView.year)], capacity = waterCapacity(item);
+  byId("weather-vessel").innerHTML = definitions() + waterDefinitions("day") +
+    glassTank(row, row.status, 25, 5, 120, 145, "day", capacity);
+  byId("weather-vessel").setAttribute("aria-label", `${dateLabel(row)}: ${dayStatusLabel(row, row.status).toLowerCase()}, ${reading(row, row.status)}${["rain", "dry", "trace", "incomplete"].includes(row.status) ? " millimetres" : ""}`);
+  byId("weather-vessel-title").textContent = row.status === "rain" ? `${reading(row, row.status)} mm, held in a day.` :
+    row.status === "dry" ? "A day without recorded rain." :
+    row.status === "trace" ? "A trace, not quite zero." : "A reading still unavailable.";
+  byId("weather-vessel-caption").textContent = ["rain", "dry"].includes(row.status) ?
+    `The full vessel represents ${fmt(capacity)} mm, the greatest completed daily reading in ${item.year}'s saved snapshot. ${row.quality === "provisional" ? "This day's report is provisional. " : ""}The moving surface is decorative; the recorded amount stays unchanged.` :
+    row.status === "trace" ? "Below 0.05 mm. The small mark records a trace; no water volume is invented." :
+    row.status === "ongoing" ? "The day is in progress. Read timestamped observations below; there is no completed daily total yet." :
+    "Unavailable and incomplete records are marked separately from a measured zero.";
+}
+
+// A single, throttled frame loop changes at most four shared paths per paint.
+function paintWaterWaves() {
+  const front = waterWavePath(-waterMotionTime / 3600 * Math.PI * 2);
+  const back = waterWavePath(waterMotionTime / 5200 * Math.PI * 2 + Math.PI);
+  for (const target of waterWaveTargets) {
+    target.front.setAttribute("d", front);
+    target.back.setAttribute("d", back);
+  }
+}
+
+function tickWaterWaves(timestamp) {
+  waterMotionFrame = null;
+  if (!waterMotionEnabled || document.hidden || waterWaveTargets.length === 0) {
+    waterLastTick = null;
+    return;
+  }
+  if (waterLastTick !== null) waterMotionTime += Math.min(100, Math.max(0, timestamp - waterLastTick));
+  waterLastTick = timestamp;
+  if (timestamp - waterLastPaint >= WATER_FRAME_MS) {
+    paintWaterWaves();
+    waterLastPaint = Number.isFinite(waterLastPaint) ?
+      timestamp - (timestamp - waterLastPaint) % WATER_FRAME_MS : timestamp;
+  }
+  waterMotionFrame = requestAnimationFrame(tickWaterWaves);
+}
+
+// Rebind after SVG redraws, preserving time and keeping only one pending water frame.
+function syncWaterMotion() {
+  const active = waterMotionEnabled && !document.hidden;
+  document.body.classList.toggle("water-static", !active);
+  document.body.classList.toggle("water-motion-on", active);
+  waterWaveTargets = [];
+  if (active) {
+    for (const [id, prefix, visible] of [["chart", "calendar", state.mode === "calendar"],
+                                        ["weather-vessel", "day", byId("weather-dialog").open]]) {
+      const svg = byId(id);
+      if (!visible || !svg.querySelector(`use[href="#${prefix}-wave-front"]`)) continue;
+      const front = svg.querySelector(`#${prefix}-wave-front`);
+      const back = svg.querySelector(`#${prefix}-wave-back`);
+      if (front && back) waterWaveTargets.push({front, back});
+    }
+  }
+  if (waterWaveTargets.length) {
+    paintWaterWaves();
+    if (waterMotionFrame === null) {
+      waterLastTick = null;
+      waterLastPaint = -Infinity;
+      waterMotionFrame = requestAnimationFrame(tickWaterWaves);
+    }
+  } else {
+    if (waterMotionFrame !== null) cancelAnimationFrame(waterMotionFrame);
+    waterMotionFrame = null;
+    waterLastTick = null;
+  }
+  for (const [control, note] of [["water-motion", "water-motion-note"],
+                                ["weather-water-motion", "weather-water-motion-note"]]) {
+    byId(control).checked = waterMotionEnabled;
+    byId(control).disabled = false;
+    byId(note).hidden = !waterMotionPreference.matches;
+    byId(note).textContent = "Motion starts off to match your reduced-motion setting. You can turn it on here.";
+  }
+}
+
+function connectWaterControls() {
+  for (const id of ["water-motion", "weather-water-motion"]) {
+    byId(id).addEventListener("change", event => {
+      waterMotionEnabled = event.target.checked;
+      syncWaterMotion();
+    });
+  }
+  waterMotionPreference.addEventListener("change", () => {
+    waterMotionEnabled = !waterMotionPreference.matches;
+    syncWaterMotion();
+  });
+  document.addEventListener("visibilitychange", syncWaterMotion);
+}
+
 function calendarView() {
   const left = 50, top = 38, width = 27.2, height = 29.8;
-  let drawing = definitions();
+  let drawing = definitions() + waterDefinitions("calendar");
   for (let day = 1; day <= 31; day++) {
     if ([1, 5, 10, 15, 20, 25, 31].includes(day)) drawing += `<text x="${left + (day - .5) * width}" y="18" text-anchor="middle">${String(day).padStart(2, "0")}</text>`;
   }
   MONTHS.forEach((month, index) => { drawing += `<text x="34" y="${top + (index + .5) * height + 3}" text-anchor="end">${month}</text>`; });
+  // Read the clock once per draw rather than constructing a formatter for every cell.
+  const capacity = waterCapacity(series()), today = hongKongDate();
   for (const row of series().days) {
-    const x = left + (row.day - 1) * width, y = top + (row.month - 1) * height;
-    const stroke = row.index === state.selected ? COLOURS.orange : row.index === state.cutoff - 1 ? COLOURS.teal : COLOURS.grid;
-    drawing += `<rect ${markAttributes(row)} x="${x + 1.6}" y="${y + 1.5}" width="${width - 3.2}" height="${height - 3}" rx="2" fill="${dayFill(row)}" stroke="${stroke}" stroke-width="${row.index === state.selected ? 2 : .7}" stroke-dasharray="${row.quality === "provisional" ? "2 2" : "none"}"/>`;
-    if (visibleStatus(row) === "trace") drawing += `<circle cx="${x + width / 2}" cy="${y + height / 2}" r="1.4" fill="${COLOURS.teal}" pointer-events="none"/>`;
+    drawing += glassTank(row, visibleStatus(row), left + (row.day - 1) * width,
+      top + (row.month - 1) * height, width, height, "calendar", capacity, true, today);
   }
-  drawing += `<text x="50" y="429" class="axis-label">One square = one day · dates run left to right, months top to bottom</text>`;
+  drawing += '<text x="50" y="429" class="axis-label">One vessel = one day · dates left to right, months top to bottom</text>';
   return drawing;
 }
 
@@ -319,7 +520,7 @@ function render() {
   state.selected = Math.min(state.selected, inspectionLimit() - 1);
   const row = series().days[state.cutoff - 1];
   const views = {
-    calendar: ["A calendar of rain", "Each square holds one day. Click a square, or press Enter on a focused date, to inspect daily weather and any saved hourly rainfall.", calendarView, "01"],
+    calendar: ["A calendar, held in water", "Each glass vessel holds one day. Click or press Enter to look inside. Playback hides later water levels; you can still open a saved day to inspect its records. On a narrow screen, scroll the calendar sideways.", calendarView, "01"],
     bars: ["The height of a wet day", (state.compare ? "Bar height is daily rainfall in millimetres. Paired purple bars use the same dates in the other year." : `Bar height is daily rainfall in millimetres, using only ${state.year} observations.`) + " A one-pixel visibility floor marks tiny readings, zero, and Trace; it is not extra rain.", barsView, "02"],
     wheel: ["A year, bent into a circle", "January starts at twelve o’clock. The year turns clockwise; rain extends linearly from the inner ring. Inner-ring dots mark zero, Trace, and data states; dot size does not encode rain.", wheelView, "03"],
     cumulative: ["How the year accumulates", state.compare ? "Each complete day adds to the line. Both years use the same month-and-day window; a quality gap stops the line." : `Each complete day in ${state.year} adds to the line. A quality gap stops the line instead of inventing an observation.`, lineView, "04"],
@@ -347,6 +548,8 @@ function render() {
   byId("matched-note").textContent = `Both completed-day lines cover 01 JAN–${dateLabel(series().days[completedCutoff() - 1], false)}. The matched daily window ends at ${dateLabel(series().days[series().matchedCount - 1], false)}; current-day observations are excluded. Provisional reports remain labelled and may be revised.`;
   renderStats();
   renderDetail();
+  updateWaterScale();
+  syncWaterMotion();
 }
 
 // Seeking backward is a fresh prefix, never an accumulation on the previous frame.
@@ -399,7 +602,11 @@ function selectDay(index, focus = false) {
   state.pinned = true;
   state.hover = null;
   render();
-  if (focus) byId("chart").querySelector(`[data-index="${state.selected}"]`)?.focus();
+  if (focus) {
+    const mark = byId("chart").querySelector(`[data-index="${state.selected}"]`);
+    mark?.focus();
+    if (state.mode === "calendar") mark?.scrollIntoView({block: "nearest", inline: "nearest"});
+  }
 }
 
 // Position an exact-value tooltip within the chart, including on a narrow screen.
@@ -412,7 +619,8 @@ function showTooltip(event, index) {
   const mark = event.target.getBoundingClientRect();
   const clientX = Number.isFinite(event.clientX) ? event.clientX : mark.x + mark.width / 2;
   const clientY = Number.isFinite(event.clientY) ? event.clientY : mark.y;
-  tooltip.style.left = `${Math.max(0, Math.min(frame.width - tooltip.offsetWidth, clientX - frame.x + 14))}px`;
+  const scroll = state.mode === "calendar" ? byId("main-chart").scrollLeft : 0;
+  tooltip.style.left = `${scroll + Math.max(0, Math.min(frame.width - tooltip.offsetWidth, clientX - frame.x + 14))}px`;
   tooltip.style.top = `${Math.max(0, Math.min(frame.height - tooltip.offsetHeight, clientY - frame.y - tooltip.offsetHeight - 10))}px`;
   state.hover = index;
   renderDetail(index);
@@ -542,6 +750,8 @@ function renderWeather() {
   renderHourlySummary(row);
   renderWeatherSources(row);
   renderHours();
+  renderWeatherVessel(row);
+  syncWaterMotion();
 }
 
 // The hourly sheet states its source, quality, and request result independently.
@@ -741,6 +951,7 @@ function openWeather(index) {
   byId("tooltip").hidden = true;
   renderWeather();
   if (!byId("weather-dialog").open) byId("weather-dialog").showModal();
+  syncWaterMotion();
   document.body.classList.add("weather-open");
   loadHourlyDate();
 }
@@ -777,6 +988,7 @@ function connectWeatherControls() {
     document.body.classList.remove("weather-open");
     weatherView.index = null;
     weatherView.hours = [];
+    syncWaterMotion();
     if (weatherView.returnFocus) byId("chart").querySelector(`[data-index="${state.selected}"]`)?.focus({preventScroll: true});
   });
   byId("weather-previous").addEventListener("click", () => changeWeatherDay(-1));
@@ -959,6 +1171,8 @@ function keepWholeHourReading(current) {
 
 // Rebuild one compact prefix per year when actual published records change.
 function rebuildLiveCalendar() {
+  // Published daily reports can change the peak used by the water vessels.
+  waterCapacityCache.clear();
   const today = hongKongDate(), live = DATA.live || {};
   for (const item of Object.values(DATA.years)) {
     const oldCoverage = item.coverageEnd;
@@ -1218,6 +1432,7 @@ function initialise() {
   });
   connectControls();
   connectWeatherControls();
+  connectWaterControls();
   connectLiveControls();
   render();
 }
