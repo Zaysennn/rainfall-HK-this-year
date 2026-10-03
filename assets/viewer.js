@@ -15,6 +15,7 @@ const weatherView = {year: DATA.defaultYear, index: null, hour: 23, hours: [],
                      playing: false, speed: 1, returnFocus: true, mode: "model",
                       loading: false, query: null, request: 0};
 let chartZoom = null;
+let atmosphere = null;
 let hourlyAnimation = null;
 let lastHourFrame = 0;
 let animation = null;
@@ -513,6 +514,8 @@ function renderDetail(index = state.hover === null ? state.selected : state.hove
   byId("reveal-day").hidden = !revealable;
   byId("previous-day").disabled = index === 0;
   byId("next-day").disabled = index === inspectionLimit() - 1;
+  // The shown daily reading drives the scene; an open weather sheet keeps its own date.
+  if (!byId("weather-dialog").open) atmosphere?.updateDay(row, {status, today: hongKongDate()});
 }
 
 // One render keeps every encoding, annotation, and summary on the same playback date.
@@ -752,6 +755,8 @@ function renderWeather() {
   renderHours();
   renderWeatherVessel(row);
   syncWaterMotion();
+  // Hourly source choices do not replace the day's measured rainfall.
+  atmosphere?.updateDay(row, {status: row.status, today: hongKongDate()});
 }
 
 // The hourly sheet states its source, quality, and request result independently.
@@ -989,6 +994,10 @@ function connectWeatherControls() {
     weatherView.index = null;
     weatherView.hours = [];
     syncWaterMotion();
+    // Return to the selected date after the native sheet closes.
+    state.hover = null;
+    byId("tooltip").hidden = true;
+    renderDetail(state.selected);
     if (weatherView.returnFocus) byId("chart").querySelector(`[data-index="${state.selected}"]`)?.focus({preventScroll: true});
   });
   byId("weather-previous").addEventListener("click", () => changeWeatherDay(-1));
@@ -1413,6 +1422,12 @@ function connectControls() {
 
 // Fill source and scale notes from the snapshot, then draw the initial published window.
 function initialise() {
+  // Images travel with the page so the cinematic window also works offline.
+  atmosphere = window.RainAtmosphere.attach({
+    root: byId("atmosphere"), control: byId("atmosphere-motion"),
+    note: byId("atmosphere-note"),
+    images: JSON.parse(byId("atmosphere-assets").textContent),
+  });
   if (DATA.live && (Object.keys(DATA.live.daily || {}).length || DATA.live.current)) rebuildLiveCalendar();
   state.cutoff = limit();
   state.selected = state.cutoff - 1;
@@ -1443,6 +1458,7 @@ initialise();
 window.rainfallExplorer = Object.freeze({
   getState: () => ({...state, limit: limit()}),
   getZoomState: () => chartZoom.getState(),
+  getAtmosphereState: () => atmosphere.getState(),
   getLiveState: () => ({...liveState, errors: [...liveState.errors], currentDate: hongKongDate()}),
   refreshLive,
   getWeatherState: () => ({open: byId("weather-dialog").open, year: weatherView.year,

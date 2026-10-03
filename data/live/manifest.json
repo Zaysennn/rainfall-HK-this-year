@@ -645,6 +645,90 @@
       "date": "2026-10-03",
       "station": "Hong Kong Observatory",
       "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-rainfall-in-the-past-hour"
+    },
+    {
+      "content_type": "application/json; charset=utf-8",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en",
+      "snapshotUTC": "2026-10-03T10:16:01.928468+00:00",
+      "bytes": 2982,
+      "sha256": "84c62fcdac43fb7746b833b684834970e1abb8ba3fd0bfad171978ec24cfafa1",
+      "raw_file": "raw/currentWeather/2026-10-03/20261003T101601928468_84c62fcdac43fb77.json",
+      "feed": "currentWeather",
+      "date": "2026-10-03",
+      "station": "Hong Kong Observatory",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-current-weather-report"
+    },
+    {
+      "content_type": "application/json",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "snapshotUTC": "2026-10-03T10:16:03.395499+00:00",
+      "bytes": 6431,
+      "sha256": "1055c0788a8ebd55d0c792efd2f183f2f13044ce5e2d8286ae267ea08abc02d9",
+      "raw_file": "raw/currentRain/2026-10-03/20261003T101603395499_1055c0788a8ebd55.json",
+      "feed": "currentRain",
+      "date": "2026-10-03",
+      "station": "Hong Kong Observatory",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-rainfall-in-the-past-hour"
+    },
+    {
+      "content_type": "application/json; charset=utf-8",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en",
+      "snapshotUTC": "2026-10-03T11:06:18.042908+00:00",
+      "bytes": 2889,
+      "sha256": "dbee7d1646035cb6abe99df377d89a225f56b7351aca574adacb8c898d6744ff",
+      "raw_file": "raw/currentWeather/2026-10-03/20261003T110618042908_dbee7d1646035cb6.json",
+      "feed": "currentWeather",
+      "date": "2026-10-03",
+      "station": "Hong Kong Observatory",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-current-weather-report"
+    },
+    {
+      "content_type": "application/json",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "snapshotUTC": "2026-10-03T11:06:19.182204+00:00",
+      "bytes": 6431,
+      "sha256": "b911784d0ab9e5cdc563789cebac90ab35d1da8ca28e6f0ebe19b8dba4574ba6",
+      "raw_file": "raw/currentRain/2026-10-03/20261003T110619182204_b911784d0ab9e5cd.json",
+      "feed": "currentRain",
+      "date": "2026-10-03",
+      "station": "Hong Kong Observatory",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-rainfall-in-the-past-hour"
+    },
+    {
+      "content_type": "application/json; charset=utf-8",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en",
+      "snapshotUTC": "2026-10-03T12:30:41.161244+00:00",
+      "bytes": 2889,
+      "sha256": "6256c69d86fdc747e93aa6079c3bcf279be77e1439f6e6471941ad708bd56155",
+      "raw_file": "raw/currentWeather/2026-10-03/20261003T123041161244_6256c69d86fdc747.json",
+      "feed": "currentWeather",
+      "date": "2026-10-03",
+      "station": "Hong Kong Observatory",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-current-weather-report"
+    },
+    {
+      "content_type": "application/json",
+      "last_modified": "",
+      "received_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "requested_url": "https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=en",
+      "snapshotUTC": "2026-10-03T12:30:42.733053+00:00",
+      "bytes": 6431,
+      "sha256": "c848ea4ce50ccfa0df95037cb06088bc711e4b5cf8b5e0520799e1e7be183c47",
+      "raw_file": "raw/currentRain/2026-10-03/20261003T123042733053_c848ea4ce50ccfa0.json",
+      "feed": "currentRain",
+      "date": "2026-10-03",
+      "station": "Hong Kong Observatory",
+      "source_page": "https://data.gov.hk/en-data/dataset/hk-hko-rss-rainfall-in-the-past-hour"
     }
   ],
   "daily": {
@@ -682,11 +766,11 @@
     "2026-10-02": "raw/recentDaily/2026-10-02/20261002T173507793519_a660d411c3b1b3c5.json"
   },
   "current": {
-    "weather": "raw/currentWeather/2026-10-03/20261003T065004909421_7ca73bcc9e025104.json",
-    "rain": "raw/currentRain/2026-10-03/20261003T065838387618_4ab03bd1e52ad7e5.json"
+    "weather": "raw/currentWeather/2026-10-03/20261003T123041161244_6256c69d86fdc747.json",
+    "rain": "raw/currentRain/2026-10-03/20261003T123042733053_c848ea4ce50ccfa0.json"
   },
-  "checkedAt": "2026-10-03T06:58:35.403456+00:00",
-  "lastSuccessAt": "2026-10-03T06:58:35.403456+00:00",
+  "checkedAt": "2026-10-03T12:30:32.615413+00:00",
+  "lastSuccessAt": "2026-10-03T12:30:32.615413+00:00",
   "errors": [],
   "coverageEnd": "2026-08-31"
 }

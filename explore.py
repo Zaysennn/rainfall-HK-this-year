@@ -14,6 +14,7 @@ to build from the checked local cache and disable automatic browser requests.
 """
 
 import argparse
+import base64
 import calendar
 import datetime as dt
 import functools
@@ -255,8 +256,18 @@ def build_page(records, excluded, live=None):
     payload = json.dumps(model, ensure_ascii=False,
                          separators=(",", ":")).replace("<", "\\u003c")
     page = (ASSETS / "viewer.html").read_text(encoding="utf-8")
+    # Embed every scene and the transparent water texture for a portable wet window.
+    scene_files = {"sun": "harbour-sun-cinematic.png",
+                   "mist": "harbour-mist-cinematic.png",
+                   "night": "harbour-night-cinematic.png",
+                   "glass": "glass-droplets.png"}
+    scenes = {name: "data:image/png;base64," + base64.b64encode(
+        (ASSETS / "harbour" / filename).read_bytes()).decode("ascii")
+        for name, filename in scene_files.items()}
+    scenery = json.dumps(scenes, separators=(",", ":"))
     replacements = {
         "<!-- INLINE_STYLE -->": "<style>" + (ASSETS / "viewer.css").read_text(
+            encoding="utf-8") + "\n" + (ASSETS / "atmosphere.css").read_text(
             encoding="utf-8") + "</style>",
         "<!-- INLINE_DATA -->": '<script id="rain-data" type="application/json">' +
                                 payload + "</script>",
@@ -264,6 +275,10 @@ def build_page(records, excluded, live=None):
             encoding="utf-8") + "</script>",
         "<!-- INLINE_ZOOM -->": "<script>" + (ASSETS / "chart-zoom.js").read_text(
             encoding="utf-8") + "</script>",
+        "<!-- INLINE_ATMOSPHERE -->":
+            '<script id="atmosphere-assets" type="application/json">' + scenery +
+            "</script><script>" + (ASSETS / "atmosphere.js").read_text(
+                encoding="utf-8") + "</script>",
         "<!-- INLINE_SCRIPT -->": "<script>" + (ASSETS / "viewer.js").read_text(
             encoding="utf-8") + "</script>",
     }

@@ -7,16 +7,50 @@
   <title>A year, in rain — Hong Kong Observatory</title>
   <!-- INLINE_STYLE -->
 </head>
-<body>
+<body data-atmosphere="neutral">
+  <!-- The wet window is scenery behind the page, never a layer over the readings. -->
+  <div id="atmosphere" class="atmosphere" data-atmosphere="neutral" data-motion="off" data-lightning="off" data-bolt="left" aria-hidden="true">
+    <div class="atmosphere-sky"></div>
+    <div id="atmosphere-harbour" class="atmosphere-harbour">
+      <img data-harbour="sun" alt="" decoding="async">
+      <img data-harbour="mist" alt="" decoding="async">
+      <img data-harbour="night" alt="" decoding="async">
+      <div class="atmosphere-glow"></div>
+      <div class="atmosphere-fog"></div>
+      <div class="atmosphere-grain"></div>
+      <div id="atmosphere-lightning" class="atmosphere-lightning">
+        <div class="atmosphere-lightning-halo"></div>
+        <svg viewBox="0 0 1440 480" preserveAspectRatio="none" focusable="false" aria-hidden="true">
+          <g class="atmosphere-bolt-left">
+            <path class="lightning-glow" d="M380 -20 L349 66 L373 59 L332 126 L355 120 L308 194 L326 184 L277 266"/>
+            <path class="lightning-core" d="M380 -20 L349 66 L373 59 L332 126 L355 120 L308 194 L326 184 L277 266"/>
+            <path class="lightning-branch" d="M351 93 L401 119 L415 151 M332 143 L280 177 L286 207 M317 203 L349 228 L341 254"/>
+          </g>
+          <g class="atmosphere-bolt-right">
+            <path class="lightning-glow" d="M1082 -20 L1052 67 L1077 60 L1036 124 L1060 120 L1012 194 L1033 184 L975 279"/>
+            <path class="lightning-core" d="M1082 -20 L1052 67 L1077 60 L1036 124 L1060 120 L1012 194 L1033 184 L975 279"/>
+            <path class="lightning-branch" d="M1057 104 L1120 136 L1132 172 M1034 155 L986 180 L980 214 M1016 215 L1052 237 L1040 264"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <canvas id="atmosphere-rain" class="atmosphere-rain-canvas"></canvas>
+    <canvas id="atmosphere-glass" class="atmosphere-glass-canvas"></canvas>
+  </div>
   <main class="page">
     <header class="masthead">
-      <a class="wordmark" href="#main-chart" aria-label="Go to the rainfall explorer"><span class="rain-symbol" aria-hidden="true">◒</span> FIELD NOTES <span class="masthead-divider">/</span> HONG KONG</a>
-      <span class="issue">OBSERVATORY RECORDS · 01</span>
+      <a class="wordmark" href="#main-chart" aria-label="Go to the rainfall explorer"><span class="rain-symbol" aria-hidden="true">◒</span> RAINFALL <span class="masthead-divider">/</span> HONG KONG</a>
+      <span class="issue">By: ChiSang Cheng</span>
     </header>
 
     <section class="hero" aria-labelledby="title">
       <div><p class="eyebrow">AN INSTRUMENT FOR READING THE WEATHER</p><h1 id="title">A year,<br><em>in rain.</em></h1></div>
       <div class="hero-note"><span class="live-dot" aria-hidden="true"></span><p>Rain, held a day at a time.<br>Small glass vessels, each carrying<br>a little of Hong Kong’s weather.</p><span class="snapshot" id="coverage-note"></span></div>
+    </section>
+
+    <section class="atmosphere-controls" aria-label="Rainfall-inspired scenery">
+      <div><p id="atmosphere-note" class="atmosphere-caption">Victoria Harbour, between showers.</p><p class="atmosphere-disclaimer">A rain-inspired scene. Light, nightfall and lightning are artistic, not observed weather.</p></div>
+      <label class="atmosphere-motion-control"><input id="atmosphere-motion" type="checkbox" checked> Atmosphere motion</label>
     </section>
 
     <section class="live-controls" aria-label="Live weather updates">
@@ -104,6 +138,7 @@
   <!-- INLINE_DATA -->
   <!-- INLINE_HOURLY -->
   <!-- INLINE_ZOOM -->
+  <!-- INLINE_ATMOSPHERE -->
 <!-- INLINE_SCRIPT -->
 </body>
 </html>

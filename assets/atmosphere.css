@@ -1,0 +1,346 @@
+/* The weather is scenery behind the page; the readings keep their own colours. */
+body[data-atmosphere] {
+  --scene-ink: #243e4c;
+  --scene-muted: #506b7b;
+  --scene-accent: #246880;
+  --scene-rule: #688b9e66;
+  --scene-controls: #f0f6f8ef;
+  background: #e3ecf1;
+}
+#atmosphere {
+  --harbour-top: 66px;
+  --sky-colour: #d6e3ec;
+  --sun-opacity: 0;
+  --mist-opacity: .66;
+  --night-opacity: 0;
+  --glow-opacity: .14;
+  --fog-opacity: .14;
+  --grain-opacity: .03;
+  --photo-veil: #e8f1f53b;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  isolation: isolate;
+  pointer-events: none;
+}
+#atmosphere *, #atmosphere *::before, #atmosphere *::after { pointer-events: none; }
+body[data-atmosphere] .page { position: relative; z-index: 1; }
+.atmosphere-sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: var(--sky-colour);
+  background-image: linear-gradient(180deg, #142f4612, transparent 38%, #eef6fa16);
+  transition: background-color 750ms ease;
+}
+
+/* Match the sunny photograph at both edges before returning to warm paper below. */
+.atmosphere-sky::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background:
+    radial-gradient(ellipse at 96% 20%, #ffe2a957, transparent 58%),
+    linear-gradient(180deg,
+      #8ab5cf 0,
+      #9abdd1 var(--harbour-top),
+      #afc3c3 calc(var(--harbour-top) + 100vw / 3),
+      #d8ddcf calc(var(--harbour-top) + 100vw / 3 + clamp(70px, 8vw, 120px)),
+      #f0e5d0 calc(var(--harbour-top) + 100vw / 3 + clamp(180px, 20vw, 300px)));
+  transition: opacity 750ms ease;
+}
+#atmosphere[data-atmosphere=dry] .atmosphere-sky::before { opacity: 1; }
+#atmosphere[data-atmosphere=dry] .atmosphere-harbour {
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 14%, #000 76%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 14%, #000 76%, transparent);
+}
+
+/* Three matching photographs keep the whole coast in view, including on a phone. */
+.atmosphere-harbour {
+  position: absolute;
+  inset: 66px 0 auto;
+  z-index: 1;
+  width: 100%;
+  aspect-ratio: 3 / 1;
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 8%, #000 83%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 8%, #000 83%, transparent);
+}
+.atmosphere-harbour img {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+  opacity: 0;
+  transition: opacity 750ms ease;
+}
+.atmosphere-harbour img[data-harbour=sun] { opacity: var(--sun-opacity); }
+.atmosphere-harbour img[data-harbour=mist] { opacity: var(--mist-opacity); filter: blur(.85px); }
+.atmosphere-harbour img[data-harbour=night] { opacity: var(--night-opacity); filter: blur(.85px); }
+.atmosphere-harbour::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: linear-gradient(90deg, var(--photo-veil), transparent 42%, transparent 66%, var(--photo-veil));
+}
+
+/* Rain and glass are painted once per frame by the shared canvas controller. */
+#atmosphere-rain, #atmosphere-glass {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+}
+#atmosphere-rain { z-index: 2; }
+#atmosphere-glass { z-index: 3; }
+
+/* Quiet light and mist move locally while the buildings and coastline stay still. */
+.atmosphere-glow, .atmosphere-fog {
+  position: absolute;
+  inset: -6%;
+  z-index: 1;
+  animation: none;
+  transform: none;
+}
+.atmosphere-glow {
+  background: radial-gradient(ellipse at 77% 15%, #ffdf9fa6, transparent 56%),
+    linear-gradient(115deg, transparent 34%, #ffe4aa45 52%, transparent 75%);
+  opacity: var(--glow-opacity);
+}
+.atmosphere-fog {
+  background: radial-gradient(ellipse at 33% 34%, #e3edf6b3, transparent 64%),
+    linear-gradient(180deg, #dde7f538, transparent 60%);
+  opacity: var(--fog-opacity);
+}
+.atmosphere-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22160%22%20height%3D%22160%22%20viewBox%3D%220%200%20160%20160%22%3E%3Cfilter%20id%3D%22grain%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.65%22%20numOctaves%3D%222%22%20seed%3D%2219%22%20stitchTiles%3D%22stitch%22%2F%3E%3CfeColorMatrix%20type%3D%22saturate%22%20values%3D%220%22%2F%3E%3CfeComponentTransfer%3E%3CfeFuncA%20type%3D%22linear%22%20slope%3D%22.18%22%2F%3E%3C%2FfeComponentTransfer%3E%3C%2Ffilter%3E%3Cpath%20fill%3D%22%23fff%22%20filter%3D%22url(%23grain)%22%20d%3D%22M0%200h160v160H0z%22%2F%3E%3C%2Fsvg%3E");
+  background-size: 160px 160px;
+  opacity: var(--grain-opacity);
+}
+#atmosphere[data-motion=on] .atmosphere-glow {
+  animation: atmosphere-light-drift 10s ease-in-out -2s infinite;
+}
+#atmosphere[data-motion=on] .atmosphere-fog {
+  animation: atmosphere-mist-drift 13s ease-in-out -4s infinite;
+}
+@keyframes atmosphere-light-drift {
+  0%, 100% { transform: translate3d(-2%, 0, 0); opacity: calc(var(--glow-opacity) * .7); }
+  50% { transform: translate3d(2%, 1%, 0); opacity: var(--glow-opacity); }
+}
+@keyframes atmosphere-mist-drift {
+  0%, 100% { transform: translate3d(-2.5%, 1%, 0); opacity: calc(var(--fog-opacity) * .72); }
+  50% { transform: translate3d(2.5%, -1%, 0); opacity: var(--fog-opacity); }
+}
+
+/* Rainfall chooses an artistic mood; it does not claim observed sun or lightning. */
+#atmosphere[data-atmosphere=dry] {
+  --sky-colour: #f0e5d0;
+  --sun-opacity: .9;
+  --mist-opacity: 0;
+  --glow-opacity: .44;
+  --fog-opacity: .025;
+  --photo-veil: #fff1d426;
+}
+#atmosphere[data-atmosphere=light] {
+  --sky-colour: #d2e1e7;
+  --sun-opacity: .45;
+  --mist-opacity: .4;
+  --glow-opacity: .16;
+  --fog-opacity: .1;
+}
+#atmosphere[data-atmosphere=trace] {
+  --sky-colour: #c4d4df;
+  --mist-opacity: .8;
+  --glow-opacity: .06;
+  --fog-opacity: .14;
+}
+#atmosphere[data-atmosphere=moderate] {
+  --sky-colour: #8ca0b0;
+  --mist-opacity: .9;
+  --glow-opacity: 0;
+  --fog-opacity: .16;
+  --grain-opacity: .035;
+  --photo-veil: #b7c9d640;
+}
+#atmosphere[data-atmosphere=heavy] {
+  --sky-colour: #193650;
+  --mist-opacity: 0;
+  --night-opacity: .9;
+  --glow-opacity: 0;
+  --fog-opacity: .065;
+  --grain-opacity: .04;
+  --photo-veil: #0c223952;
+}
+#atmosphere[data-atmosphere=storm] {
+  --sky-colour: #102c46;
+  --mist-opacity: 0;
+  --night-opacity: .96;
+  --glow-opacity: 0;
+  --fog-opacity: .085;
+  --grain-opacity: .045;
+  --photo-veil: #0a20395e;
+}
+
+/* Violet light stays in the photographed sky and fades once, without a white screen. */
+#atmosphere-lightning {
+  --lightning-x: 75%;
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 3;
+  height: 68%;
+  opacity: 0;
+  animation: none;
+}
+#atmosphere[data-bolt=left] #atmosphere-lightning { --lightning-x: 25%; }
+#atmosphere-lightning :is(.halo, .atmosphere-lightning-halo) {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at var(--lightning-x) 18%, #c7a7ffb3, #9479c933 38%, transparent 73%);
+  opacity: .25;
+}
+#atmosphere-lightning > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+#atmosphere-lightning svg path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+#atmosphere-lightning .lightning-glow { stroke: #aa82eb; stroke-width: 7; stroke-opacity: .3; }
+#atmosphere-lightning .lightning-core { stroke: #d5bdff; stroke-width: 1.6; stroke-opacity: .96; }
+#atmosphere-lightning .lightning-branch { stroke: #baa1ee; stroke-width: .9; stroke-opacity: .76; }
+.atmosphere-bolt-left, .atmosphere-bolt-right { opacity: 0; }
+#atmosphere[data-bolt=left] .atmosphere-bolt-left,
+#atmosphere[data-bolt=right] .atmosphere-bolt-right { opacity: 1; }
+#atmosphere[data-motion=on][data-lightning=on]:is([data-atmosphere=heavy], [data-atmosphere=storm]) #atmosphere-lightning {
+  animation: atmosphere-violet-lightning 800ms ease-out 1;
+}
+@keyframes atmosphere-violet-lightning {
+  0% { opacity: 0; }
+  16% { opacity: .88; }
+  40% { opacity: .55; }
+  100% { opacity: 0; }
+}
+
+/* The cards remain pale instruments, so their ink and rainfall scales never change. */
+body[data-atmosphere] .instrument { background: #f6fbfcfa; }
+body[data-atmosphere] .chart-column,
+body[data-atmosphere] .detail { background: #f8fcfdfa; }
+body[data-atmosphere] .live-controls { background: #e9f3f6fa; }
+body[data-atmosphere] .stats {
+  background: #f8fcfdfa;
+  border-radius: 14px;
+  color: var(--ink);
+}
+
+/* Only exposed lettering follows the scene; all data labels keep the existing ink. */
+body[data-atmosphere] .masthead,
+body[data-atmosphere] .footer { border-color: var(--scene-rule); }
+body[data-atmosphere] .wordmark,
+body[data-atmosphere] .hero,
+body[data-atmosphere] .footer { color: var(--scene-ink); }
+body[data-atmosphere] .hero h1 em,
+body[data-atmosphere] .footer a { color: var(--scene-accent); }
+body[data-atmosphere] .masthead-divider,
+body[data-atmosphere] .issue,
+body[data-atmosphere] .hero .eyebrow,
+body[data-atmosphere] .hero .snapshot,
+body[data-atmosphere] .footer p,
+body[data-atmosphere] .footer small { color: var(--scene-muted); }
+body[data-atmosphere] :is(.wordmark, .hero, .issue, .footer) {
+  transition: color 650ms ease, border-color 650ms ease;
+}
+body[data-atmosphere=moderate] {
+  --scene-ink: #132f40;
+  --scene-muted: #183b4e;
+  --scene-accent: #153c55;
+  --scene-rule: #456d8459;
+}
+body:is([data-atmosphere=heavy], [data-atmosphere=storm]) {
+  --scene-ink: #f0f6fc;
+  --scene-muted: #d1e1ee;
+  --scene-accent: #bee7f5;
+  --scene-rule: #a4c9df66;
+  --scene-controls: #102d46eb;
+}
+body:is([data-atmosphere=heavy], [data-atmosphere=storm]) .hero .live-dot {
+  background: #a0d9ef;
+  box-shadow: 0 0 0 6px #96bfdc2e;
+}
+
+/* The scenery motion setting is separate from the calendar's water movement. */
+.atmosphere-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: -6px 0 17px;
+  padding: 12px 15px;
+  border: 1px solid var(--scene-rule);
+  border-radius: 12px;
+  background: var(--scene-controls);
+  color: var(--scene-ink);
+}
+.atmosphere-controls > div { min-width: 0; }
+#atmosphere-note { margin: 0; font-size: 11px; line-height: 1.7; }
+.atmosphere-disclaimer {
+  margin: 2px 0 0;
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--scene-muted);
+}
+.atmosphere-motion-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  white-space: nowrap;
+  font-size: 11px;
+  cursor: pointer;
+}
+#atmosphere-motion { width: 17px; height: 17px; margin: 0; accent-color: #347e9d; }
+
+/* A phone keeps the complete coastline; its wet window still fills the background. */
+@media (max-width: 800px) {
+  #atmosphere { --harbour-top: 108px; }
+  .atmosphere-harbour { top: 108px; }
+}
+@media (max-width: 580px) {
+  #atmosphere { --harbour-top: 152px; }
+  .atmosphere-harbour { top: 152px; }
+  .atmosphere-controls { flex-direction: column; align-items: flex-start; gap: 5px; margin-top: 0; }
+}
+
+/* Static photographs and wet glass remain when moving effects are switched off. */
+#atmosphere[data-motion=off] :is(.atmosphere-glow, .atmosphere-fog, #atmosphere-lightning) {
+  animation: none;
+  transition: none;
+  transform: none;
+}
+#atmosphere[data-motion=off] #atmosphere-lightning { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  #atmosphere *, #atmosphere .atmosphere-sky::before, .atmosphere-controls,
+  body[data-atmosphere] :is(.wordmark, .hero, .issue, .footer) {
+    animation: none !important;
+    transition: none !important;
+  }
+  #atmosphere :is(.atmosphere-glow, .atmosphere-fog) { transform: none !important; }
+  #atmosphere-lightning { opacity: 0 !important; }
+}

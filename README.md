@@ -60,7 +60,15 @@ uv run --offline rainfall_main.py --offline
 - Zoom **Daily bars**, **Rain wheel**, and **Cumulative** with the mouse wheel,
   a two-finger pinch, or **+ / -** (1-16 times). Drag the enlarged chart to look
   around; **Reset** brings back the full view. Each chart remembers its position.
-- Hover or focus a day for a quick reading.
+- Hover or focus a day for a quick reading and a rain-inspired view of Victoria
+  Harbour: golden daylight, grey mist, or a blue city night with violet lightning.
+  Moving rain and wet-glass drops stay behind the page; the reading panels stay clear.
+- **Atmosphere motion** pauses the scenery. **Water motion** controls the vessels
+  separately. System reduced-motion settings keep the background still.
+- Glass density is an artistic setting: **50%** for 10 to under 50 mm and **90%**
+  for 50 mm or more. It is not humidity or a measured percentage of rainfall.
+  Scenery uses completed daily readings, not hourly model estimates.
+  The current day, missing readings and unrevealed dates keep neutral light.
 - Click a Calendar square—or press **Enter / Space**—for **Day weather**.
 - Use previous/next to browse dates; **Escape** closes the weather panel.
 - **Same-period comparison** matches completed dates in both years.
@@ -149,7 +157,8 @@ download times, and **SHA-256** checksums.
 | Location | Contents |
 |---|---|
 | `data/` | Raw station and model responses, with source times and checksums |
-| `assets/` | Official page source: edit `viewer.html`, `viewer.css`, and `viewer.js` |
+| `assets/` | Page: `viewer.*`; cinematic background: `atmosphere.css` / `atmosphere.js` |
+| `assets/harbour/` | Three AI-created panoramas, transparent water texture and `prompts.md` |
 | `out/` | GIF and PNG/SVG previews |
 | `site/index.html` | Generated, self-contained explorer |
 
